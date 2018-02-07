@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration scan="true" scanPeriod="60 seconds" debug="false">
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <property name="LOG_HOME" value="D:/logs/"/>
+    <property name="FILE_NAME" value="mylog/"/>
+    <property name="APP_Name" value="IMS" />
+
+    <contextName>${APP_Name}</contextName>
+
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d %p (%file**:**%line\)- %m%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="STDOUT02" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d %p (%file*:*%line\)- %m%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="baselog02"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>log/base02.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/base02.log.%d</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>
+                %d,,,,%m%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="baselog"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>log/base.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/base.log.%d</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>
+                %d,%m%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+    </root>
+    <logger name="com.infomanagesys.InfoManageSys.service.impl.TestServiceImpl" level="info">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="baselog" />
+    </logger>
+    <logger name="com.bao" level="info">
+        <appender-ref ref="baselog02" />
+    </logger>
+</Configuration>

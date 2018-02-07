@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class ExceptionHandle {
 
-    @ExceptionHandler(TestException.class)
+@ExceptionHandler(TestException.class)
     public String dealException(){
         return "Exception handle success";
     }
