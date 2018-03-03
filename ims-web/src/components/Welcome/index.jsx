@@ -7,12 +7,7 @@ export default class Welcome extends Component{
  }
   render(){
     return (<div>
-      <div className="panel panel-primary">
-        <div className="panel-heading">
-          <h3 className="panel-title">{this.props.title}</h3>
-        </div>
-        <div className="panel-body">{this.props.content}</div>
-      </div>
+      Hello {this.props.name}
     </div>)
   }
 }
