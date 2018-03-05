@@ -1,0 +1,11 @@
+#PerInfo{
+    background-color: coral;
+    height:495px;
+    width:240px;
+}
+td{
+    float: left;
+}
+tr{
+    float:top;
+}
