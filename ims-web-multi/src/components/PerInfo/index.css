@@ -2,10 +2,13 @@
     background-color: coral;
     height:495px;
     width:240px;
+    margin: 0px ;
 }
 td{
     float: left;
+    padding: 0px;
 }
-tr{
-    float:top;
+
+p{
+    margin:0px;
 }

@@ -1,3 +1,7 @@
 .pt{
     background-color: #C69C6D;
 }
+#main{
+    width:960px;
+    margin:0px auto;
+}

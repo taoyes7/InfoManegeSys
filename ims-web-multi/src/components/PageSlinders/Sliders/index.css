@@ -9,7 +9,7 @@ ul,li{
 .wrapper{
     position: relative;
     width: 960px;
-    margin: 30px auto;
+    margin: 0px ;
     height: 315px;
     overflow: hidden;
 }

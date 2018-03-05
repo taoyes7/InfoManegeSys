@@ -6,14 +6,18 @@ export default class InfoTexta extends Component{
         super(props);
     }
     render(){
-        let style={
-            
-        };
+        {
+            var self = this;
+            var style={
+                width:this.props.width
+            };
+        }
+        
         return (
         <div style={style}>
         {
             this.props.datas.map(function(info_text){
-                return (  <MyText name={info_text.name} value={info_text.value}></MyText>)
+                return (  <MyText name={info_text.name} value={info_text.value} p_margin={self.props.p_margin} height_space={self.props.height_space}></MyText>)
             })
         }
         </div>)
