@@ -1,0 +1,10 @@
+#album{ 
+    width:150px;
+    height:200px;
+    background-color: chartreuse;
+    float: left;
+} 
+#album_photo{
+    height:170px;
+    width:150px;
+}   

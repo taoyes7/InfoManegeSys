@@ -3,7 +3,9 @@ import ReactDOM from 'react-dom';
 import Welcome from 'components/Welcome';
 import Sliders from 'components/PageSlinders/Sliders';
 import PerInfo from 'components/PerInfo'
+import Document from 'components/Document'
 import './index.css';
+
 
 
 class HomePage extends React.Component {
@@ -16,6 +18,7 @@ class HomePage extends React.Component {
                 require('E:/Download/photo03.jpg'),
             ],
         src: require('E:/Download/img_head.jpg'),
+        album_src: require('E:/Download/img_head.jpg'),
         info_text01:[
           {"name":"姓名","value":"张雪"},
           {"name":"职业","value":"中学教师"},
@@ -33,7 +36,7 @@ class HomePage extends React.Component {
     render() {
       return (
         
-        <body className='pt'>
+          <div id="home">
             <div id="main" >
                 <Sliders
                     images={this.state.Img}
@@ -43,10 +46,10 @@ class HomePage extends React.Component {
                     autoParse={true}
                 />
                 <PerInfo src={this.state.src} info_text01={this.state.info_text01} motto={this.state.motto } 
-            info_text02={this.state.info_text02}></PerInfo> 
-                                                
+            info_text02={this.state.info_text02} ></PerInfo> 
+                <Document album_src={this.state.album_src}></Document>                        
             </div>
-        </body>
+          </div>
         
       );
     }

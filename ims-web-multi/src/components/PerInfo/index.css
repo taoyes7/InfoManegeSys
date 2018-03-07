@@ -3,6 +3,7 @@
     height:495px;
     width:240px;
     margin: 0px ;
+    float: left;
 }
 td{
     float: left;
