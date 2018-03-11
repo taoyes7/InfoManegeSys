@@ -4,6 +4,7 @@ import Welcome from 'components/Welcome';
 import Sliders from 'components/PageSlinders/Sliders';
 import PerInfo from 'components/PerInfo'
 import Document from 'components/Document'
+import Router from 'react-router'
 import './index.css';
 
 
@@ -33,11 +34,20 @@ class HomePage extends React.Component {
         ]
       }
     }
+    
     render() {
+      let doc_click = ()=>{
+        Router.push({
+          pathname: '/test.html',
+          query: { modal: true },
+          state: { fromDashboard: true }
+      })
+        
+      };
       return (
         
           <div id="home">
-            <div id="main" >
+            <div id="main"  >
                 <Sliders
                     images={this.state.Img}
                     speed={1}
@@ -47,7 +57,7 @@ class HomePage extends React.Component {
                 />
                 <PerInfo src={this.state.src} info_text01={this.state.info_text01} motto={this.state.motto } 
             info_text02={this.state.info_text02} ></PerInfo> 
-                <Document album_src={this.state.album_src}></Document>                        
+                <Document album_src={this.state.album_src} doc_click={doc_click}></Document>                        
             </div>
           </div>
         

@@ -33,6 +33,7 @@
     "webpack-hot-middleware": "^2.18.0"
   },
   "dependencies": {
+    "react-router": "^4.2.0",
     "uiw": "^1.7.0"
   }
 }

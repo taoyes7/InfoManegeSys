@@ -7,7 +7,7 @@ export default class DocumentManage extends Component{
     }
     render(){
         return(
-            <div id="documentManage">
+            <div id="documentManage" onClick={this.props.click}>
             <center><div id="title">文件管理</div></center>
             </div>
         )

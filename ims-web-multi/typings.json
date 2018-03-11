@@ -2,5 +2,8 @@
   "dependencies": {
     "react": "registry:dt/react#15.0.0+20170324160437",
     "react-native": "registry:dt/react-native#0.42.0+20170324170601"
+  },
+  "globalDependencies": {
+    "react-router": "registry:dt/react-router#4.0.0+20170323201651"
   }
 }
