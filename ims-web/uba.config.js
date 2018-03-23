@@ -12,7 +12,7 @@ const Jarvis = require("webpack-jarvis");
 //服务启动设置
 const svrConfig = {
   host: "127.0.0.1",
-  port: 3000,
+  port: 3030,
   historyApiFallback : false,
   noInfo: false
 };
@@ -26,7 +26,12 @@ const proxyConfig = [{
   enable: true,
   router: ["/users/*", "/orgs/*"],
   url: "https://api.github.com"
+},{
+  enable: true,
+  router: "/test/*",
+  url: "http://127.0.0.1:8085"
 }];
+
 
 
 //提取package里的包

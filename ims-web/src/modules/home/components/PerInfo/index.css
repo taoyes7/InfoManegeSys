@@ -1,0 +1,15 @@
+#PerInfo{
+    background-color: coral;
+    height:495px;
+    width:240px;
+    margin: 0px ;
+    float: left;
+}
+td{
+    float: left;
+    padding: 0px;
+}
+
+p{
+    margin:0px;
+}
