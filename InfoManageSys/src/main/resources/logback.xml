@@ -49,7 +49,7 @@
 
     <root level="info">
     </root>
-    <logger name="com.infomanagesys.InfoManageSys.service.impl.TestServiceImpl" level="info">
+    <logger name="com.infomanagesys.InfoManageSys.service.doc.impl.TestServiceImpl" level="info">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="baselog" />
     </logger>

@@ -22,4 +22,9 @@ mirror.hook((action, getState) => {
 
 
 
-export default connect((state) => state.home)(Home);
+export default connect((state) =>{
+  return{
+      _state:state.home,
+      sessionId:state.login.sessionId
+  }
+})(Home);

@@ -14,8 +14,13 @@ mirror.model(DocumentModel);
 mirror.hook((action, getState) => {
   const { routing: { location } } = getState();
   if (action.type === "@@router/LOCATION_CHANGE" && location.pathname === '/document') {
-    // actions.user.load();
+    actions.document.openRootDir(getState().login.sessionId);
   }
 });
 
-export default connect((state) => state.document)(Document);
+export default connect((state) =>  {//连接组件和状态管理
+  return {
+      _state: state.document,
+      sessionId:state.login.sessionId
+  }
+})(Document);

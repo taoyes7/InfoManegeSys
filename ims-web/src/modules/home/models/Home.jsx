@@ -24,18 +24,31 @@ export default {
         ]
     },
     reducers : {
-        // save_1(state, data) {
-        //     return {
-        //         ...state,
-        //         ...data
-        //     }
-        // }
+        // doc_click(){
+        //     // let  {data:{data,success}} = await api.CallApi("ni hao");
+        //     // actions.home.save({motto:"nihao a"})
+        //     let motto=[{"name":"签名","value":"最好的生活, 最美的自己,sbsbsbs"}];
+        //     actions.home.save_1(motto);
+        // },
+        save_1(state, data) {
+            console.log(state);
+            console.log(data);
+            return {
+                ...state,
+                ...data
+            }
+        }
         
     },
     effects : {
-        async  doc_click(){
-            let  {data:{data,success}} = await api.CallApi("ni hao");
-            alert(data+success);
+        doc_click(){
+
+        //     let motto=[{"name":"签名","value":"最好的生活, 最美的自己,sbsbsbs"}];
+        //     actions.home.save_1({motto});
+        //    console.log("success");    
+        actions.routing.push({
+            pathname: `/document`
+        });
         }
     }
 }

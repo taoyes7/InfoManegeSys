@@ -1,7 +1,7 @@
 import React,{ Component } from 'react';
 import MyText from '../MyText'
 
-export default class InfoTexta extends Component{
+export default class InfoText extends Component{
     constructor(props) {
         super(props);
     }

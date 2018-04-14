@@ -30,6 +30,14 @@ const proxyConfig = [{
   enable: true,
   router: "/test/*",
   url: "http://127.0.0.1:8085"
+},{
+  enable: true,
+  router: "/doc/*",
+  url: "http://127.0.0.1:8085"
+},{
+  enable: true,
+  router: "/user/*",
+  url: "http://127.0.0.1:8085"
 }];
 
 

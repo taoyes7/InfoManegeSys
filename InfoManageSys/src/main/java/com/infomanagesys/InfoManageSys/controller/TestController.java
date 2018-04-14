@@ -1,9 +1,8 @@
 package com.infomanagesys.InfoManageSys.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
-import com.infomanagesys.InfoManageSys.service.impl.TestServiceImpl;
+import com.infomanagesys.InfoManageSys.service.doc.impl.TestServiceImpl;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -23,6 +22,7 @@ public class TestController {
 //        axios.setData(" Taoyes 7");
 //        axios.setSuccess(true);
 //        return axios;
+//        testService.readWorldForDocX();
         return testService.getNameFromRedis();
 //        return testService.getNameById();
     }
@@ -31,7 +31,7 @@ public class TestController {
     public void upLoadSingleFile(HttpServletRequest req,
                                  MultipartHttpServletRequest multiReq) {
         MultipartFile file = multiReq.getFile("file1");
-        testService.uploadFile(file);
+//        testService.uploadFile(file);
     }
 
     @RequestMapping(value = "/Axios", method = RequestMethod.POST)
