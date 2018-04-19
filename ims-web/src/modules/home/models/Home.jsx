@@ -43,8 +43,13 @@ export default {
     effects : {
         doc_click(){
 
-        //     let motto=[{"name":"签名","value":"最好的生活, 最美的自己,sbsbsbs"}];
-        //     actions.home.save_1({motto});
+        //     let info_text02=[
+        //         {"name":"电话","value":"18010541632"},
+        //         {"name":"QQ","value":"1982038972"},
+        //         {"name":"E-Mail","value":"1982038972@qq.com"},
+        //         {"name":"地址","value":"四川大学(望江校区)"}
+        //         ];
+        //     actions.home.save_1({info_text02});
         //    console.log("success");    
         actions.routing.push({
             pathname: `/document`

@@ -1,9 +1,9 @@
 package com.infomanagesys.InfoManageSys.dataobject.enums;
 
 public enum DocTypeEnum {
-    DOC_TYPE_ENUM("DOC","world文档-Word2003以前版本","world","E:/Myfile/DOC.png")
-    ,DOCX_TYPE_ENUM("DOCX","world文档-Office2007之后版本使用","world","E:/Myfile/DOCX.png")
-    ,DIR_TYPE_ENUM("DIR","文件夹","dir","E:/Myfile/DIR.png");
+    DOC_TYPE_ENUM("DOC","world文档-Word2003以前版本","world","http://localhost:8080/icon/DOC.png")
+    ,DOCX_TYPE_ENUM("DOCX","world文档-Office2007之后版本使用","world","http://localhost:8080/icon/DOCX.png")
+    ,DIR_TYPE_ENUM("DIR","文件夹","dir","http://localhost:8080/icon/DIR.png");
     private String name;
     private String describe;
     private String type;
@@ -27,7 +27,6 @@ public enum DocTypeEnum {
                  return null;
         }
     }
-
     public String getName() {
         return name;
     }

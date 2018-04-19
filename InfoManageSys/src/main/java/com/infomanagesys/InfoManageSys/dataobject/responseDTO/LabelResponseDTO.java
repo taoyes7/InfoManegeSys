@@ -2,11 +2,16 @@ package com.infomanagesys.InfoManageSys.dataobject.responseDTO;
 
 import org.json.JSONObject;
 
-public class LabelResponseDTO extends ResponseDTO{
+import java.io.Serializable;
+
+public class LabelResponseDTO extends ResponseDTO implements Serializable {
     private String content;
+    private String discription;
+    private String type;
     private int level;
     private String color;
     private double score;
+    private String pid;
 
     public String getContent() {
         return content;
@@ -40,6 +45,30 @@ public class LabelResponseDTO extends ResponseDTO{
         this.score = score;
     }
 
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
+    }
+
+    public String getDiscription() {
+        return discription;
+    }
+
+    public void setDiscription(String discription) {
+        this.discription = discription;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         JSONObject label = new JSONObject();
@@ -48,6 +77,9 @@ public class LabelResponseDTO extends ResponseDTO{
             label.put("level",level);
             label.put("color",color);
             label.put("score",score);
+            label.put("pid",pid);
+            label.put("type",type);
+            label.put("discription",discription);
         }catch (Exception e){
             e.printStackTrace();
         }

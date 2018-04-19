@@ -9,6 +9,7 @@ const Login = () =>{
         <div id="login">
           <Button colors="primary" onClick={ actions.login.register}>注册按钮</Button>
           <Button colors="primary" onClick={ actions.login.login}>登录按钮</Button>
+          <Button colors="primary" onClick={ actions.login.createRootDir}>创建根目录</Button>
         </div>
       
     );

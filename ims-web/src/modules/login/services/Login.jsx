@@ -3,7 +3,8 @@ import request from "utils/request";
 
 const URL = {
     "REGISTER": "/user/register",
-    "LOGIN":"/user/login"
+    "LOGIN":"/user/login",
+    "CREATE_ROOT_DIR":"/doc/create/rootdir"
     
 }
 export const register = () => {
@@ -22,6 +23,14 @@ export const login = () =>{
         param: {
             "accountid":"18010541632",
             "passworld":"123456"
+        }
+    });
+}
+export const createRootDir=(sessionId)=>{
+    return request(URL.CREATE_ROOT_DIR, {
+        method: "post", 
+        param: {
+            "sessionId":sessionId
         }
     });
 }

@@ -3,9 +3,10 @@ package com.infomanagesys.InfoManageSys.dataobject.responseDTO;
 
 import org.json.JSONArray;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class FileResponseDTO extends ResponseDTO{
+public class FileResponseDTO extends ResponseDTO implements Serializable {
 
     /**文件或文件夹名*/
     private String name;

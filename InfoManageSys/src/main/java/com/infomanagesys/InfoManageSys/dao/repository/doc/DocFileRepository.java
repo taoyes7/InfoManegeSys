@@ -9,4 +9,5 @@ public interface DocFileRepository extends JpaRepository<DocFile, Long> {
     DocFile findFirstById(Long id);
     ArrayList<DocFile> findByParent(String parent);
     DocFile findFirstByNameAndPostfix(String name,String postfix);
+    DocFile findFirstByUserAndParentAndNameAndPostfix(String user,String parent,String name,String postfix);
 }

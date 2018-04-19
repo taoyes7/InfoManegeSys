@@ -3,11 +3,12 @@ package com.infomanagesys.InfoManageSys.service.doc.impl;
 import com.baidu.aip.nlp.AipNlp;
 import com.infomanagesys.InfoManageSys.dao.repository.doc.LabelRepository;
 import com.infomanagesys.InfoManageSys.dataobject.entity.doc.DocFile;
-import com.infomanagesys.InfoManageSys.dataobject.entity.doc.Label;
+import com.infomanagesys.InfoManageSys.dataobject.entity.label.Label;
 import com.infomanagesys.InfoManageSys.dataobject.enums.ApiKeyEnum;
 import com.infomanagesys.InfoManageSys.dataobject.enums.LabelEnum;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LabelResponseDTO;
 import com.infomanagesys.InfoManageSys.service.doc.itf.INLPService;
+import com.infomanagesys.InfoManageSys.util.Pid;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -20,7 +21,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 @Service
 public class NLPServiceImpl implements INLPService {
@@ -30,7 +30,7 @@ public class NLPServiceImpl implements INLPService {
         this.labelRepository = labelRepository;
     }
     @Override
-    public ArrayList<LabelResponseDTO> GetLabelsByWorldFile(DocFile docFile) {
+    public ArrayList<LabelResponseDTO> GetLabelsByWorldFile(DocFile docFile,String userId) {
         ArrayList<LabelResponseDTO> labelResponseDTOArrayList = new ArrayList<LabelResponseDTO>();
         File file = new File(docFile.getPathLocal() +"\\"+ docFile.getName()+"." + docFile.getPostfix().toLowerCase());
         String content = "";
@@ -65,32 +65,36 @@ public class NLPServiceImpl implements INLPService {
 
         try {
             ArrayList<String> arrayList= new ArrayList<String>();
-            JSONArray items = res.getJSONArray("items");
-            System.out.print(res);
-            System.out.print(items);
-            for (int i=0;i<items.length();i++) {
-                JSONObject item = items.getJSONObject(i);
-                if(labelRepository.findFirstByContent(item.getString("tag"))==null){
-                    Label label = Label.labelBuilder()
-                            .withType("other")
-                            .withContent(item.getString("tag"))
-                            .withContent(item.getString("tag"))
-                            .withStatus("0").build();
-                    labelRepository.save(label);
-                }else {
+            if(res!=null){
+                JSONArray items = res.getJSONArray("items");
+                System.out.print(res);
+                System.out.print(items);
+                for (int i=0;i<items.length();i++) {
+                    JSONObject item = items.getJSONObject(i);
+                    Label label = labelRepository.findFirstByContent(item.getString("tag"));
+                    if(label==null){
+                        label = Label.labelBuilder()
+                                .withType("other")
+                                .withPid(Pid.getPid())
+                                .withContent(item.getString("tag"))
+                                .withUser(userId)
+                                .withDescription(item.getString("tag"))
+                                .withStatus("0").build();
+                        label = labelRepository.save(label);
+                    }
                     LabelResponseDTO labelResponseDTO = new LabelResponseDTO();
                     labelResponseDTO.setContent(item.getString("tag"));
                     labelResponseDTO.setScore(item.getDouble("score"));
                     labelResponseDTO.setLevel(getLevelByScore(item.getDouble("score")));
                     labelResponseDTO.setColor(LabelEnum.GetEnumByLevel(labelResponseDTO.getLevel()).getColor());
+                    labelResponseDTO.setPid(label.getPid());
                     labelResponseDTOArrayList.add(labelResponseDTO);
                 }
-
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return  labelResponseDTOArrayList;
     }
 

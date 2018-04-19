@@ -33,6 +33,8 @@ public class DocDir implements Serializable {
     private String label;
     @Column
     private int level;
+    @Column(columnDefinition="TEXT")
+    private String classifyRules;
 
     public Long getId() {
         return id;
@@ -122,6 +124,14 @@ public class DocDir implements Serializable {
         this.level = level;
     }
 
+    public String getClassifyRules() {
+        return classifyRules;
+    }
+
+    public void setClassifyRules(String classifyRules) {
+        this.classifyRules = classifyRules;
+    }
+
     @Override
     public String toString() {
         return "DocDir{" +
@@ -136,6 +146,7 @@ public class DocDir implements Serializable {
                 ", user='" + user + '\'' +
                 ", label='" + label + '\'' +
                 ", level=" + level +
+                ", classifyRules='" + classifyRules + '\'' +
                 '}';
     }
 
@@ -155,6 +166,7 @@ public class DocDir implements Serializable {
         private String user;
         private String label;
         private int level;
+        private String classifyRules;
         public DocDirBuilder withId(Long id){
             this.id=id;
             return this;
@@ -199,6 +211,10 @@ public class DocDir implements Serializable {
             this.level = level;
             return this;
         }
+        public DocDirBuilder withClassifyRules(String classifyRules){
+            this.classifyRules=classifyRules;
+            return this;
+        }
 
         public DocDir build(){
             DocDir docDir = new DocDir();
@@ -212,6 +228,7 @@ public class DocDir implements Serializable {
             docDir.setUser(this.user);
             docDir.setLabel(this.label);
             docDir.setLevel(this.level);
+            docDir.setClassifyRules(this.classifyRules);
             if(this.id==null){
                 Timestamp currentDate = new Timestamp(System.currentTimeMillis());
                 docDir.setCreateDate(currentDate);

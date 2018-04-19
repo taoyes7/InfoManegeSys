@@ -5,6 +5,7 @@ export default (url, options) => {
         method: options.method,
         url: url,
         data: options.data,
-        params: options.param
+        params: options.param,
+        dataType: 'json'
     });
 }

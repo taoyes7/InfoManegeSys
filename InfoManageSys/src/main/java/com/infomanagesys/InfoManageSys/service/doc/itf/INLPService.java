@@ -6,5 +6,5 @@ import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LabelResponseDTO;
 import java.util.ArrayList;
 
 public interface INLPService {
-    public ArrayList<LabelResponseDTO> GetLabelsByWorldFile(DocFile docFile);
+    public ArrayList<LabelResponseDTO> GetLabelsByWorldFile(DocFile docFile, String userId);
 }

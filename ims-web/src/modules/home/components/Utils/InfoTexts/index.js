@@ -15,6 +15,7 @@ export default class InfoText extends Component{
         
         return (
         <div style={style}>
+        
         {
             this.props.datas.map(function(info_text){
                 return (  <MyText name={info_text.name} value={info_text.value} p_margin={self.props.p_margin} height_space={self.props.height_space}></MyText>)

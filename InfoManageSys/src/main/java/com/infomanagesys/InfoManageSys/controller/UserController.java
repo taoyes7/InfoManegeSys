@@ -5,10 +5,8 @@ import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LoginResponseDTO;
 import com.infomanagesys.InfoManageSys.service.doc.impl.DocServiceImpl;
 import com.infomanagesys.InfoManageSys.service.user.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.repository.query.Param;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 

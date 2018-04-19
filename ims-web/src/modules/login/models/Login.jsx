@@ -3,7 +3,7 @@ import * as api from "../services/Login";
 export default {
     name : "login",
     initialState : {
-       sessionId:"aaeea59796a447da88557e93adb674a3",
+       sessionId:"6d796804171a4a88af1d5f1b6adcb54d",
        state:true
     },
     reducers : {
@@ -30,6 +30,12 @@ export default {
                 actions.routing.push({
                     pathname: `/home`
                 });
+            }
+        },
+        async createRootDir(){
+            let {data:{success}} = await api.createRootDir("6d796804171a4a88af1d5f1b6adcb54d");
+            if(success){
+                alert("success");
             }
         }
     }

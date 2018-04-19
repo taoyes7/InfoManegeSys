@@ -8,20 +8,33 @@ import My_file from '../My_file';
 export default class Doc_docs extends Component{
     constructor(props) {
         super(props);
-        this.state={
-            labels:[
-                {"color":"red", "name":"计算机"},
-                {"color":"green", "name":"服务业"},
-                {"color":"green", "name":"餐饮"}
-            ]
-        }
     }
     
     
-    render(){  
-    
+    render(){ 
+       let key=0;
+       let shif = this;
         return (<div id="doc_docs" > 
-        <My_file src={require('E:/Myfile/DOC.png')} name={"myfileasdaasdff"} labels={this.state.labels}></My_file>
+        <center><h1>{this.props.currentDir.name}</h1></center>
+        <Divider style={{margin:'0px'}}/>   
+        <div id="doc_docs_files">
+        { 
+            
+            this.props.fileList.map(function(file){
+                key++;
+                    return(
+                        <My_file key={key} file={file} sessionId={shif.props.sessionId}></My_file>
+                    ) 
+            })
+        }
+        </div> 
         </div>)
       } 
 }
+
+
+// export default connect((state) => {//连接组件和状态管理
+//     return {
+//         fileList: state.document.fileList
+//     }   
+// })(Doc_docs)
