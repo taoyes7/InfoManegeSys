@@ -7,10 +7,7 @@ const URL = {
     "GET_CURRENT_DIR":"/doc/get/currentdir",
     "CHECK_UPLOAD_FILE":"",
     "OPEN_DIR":"/doc/open/dir",
-    "BACK_PARENT":"doc/back/parent",
-    "ADD_LABEL":"/doc/add/label",
-    "GET_ALL_LABELS":"/doc/get/alllabels",
-    "CHECK_LABEL":"/doc/check/label"
+    "BACK_PARENT":"doc/back/parent"
 }
 export const createDir = (sessionId,dirName) => {
    return request(URL.CREATE_DIR, {
@@ -63,31 +60,5 @@ export const backToParent=(sessionId)=>{
         }
     });
 }
-export const addLabel=(args)=>{
-    console.log(args);
-    return request(URL.ADD_LABEL,{
-        method:"post",
-        param:{
-            "sessionId":args.sessionId,
-            "file":args.file,
-            "label":args.label
-        }
-    });
-}
-export const getAllLabels=(args)=>{
-    return request(URL.GET_ALL_LABELS,{
-        method:"post",
-        param:{
-            "sessionId":args.sessionId
-        }
-    });
-} 
-export const checkLabel=(args)=>{
-    return request(URL.CHECK_LABEL,{
-        method:"post",
-        param:{
-            "sessionId":args.sessionId,
-            "label":args.label
-        }
-    });
-} 
+
+

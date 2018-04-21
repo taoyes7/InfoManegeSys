@@ -6,7 +6,7 @@ export default {
     initialState : {
       fileList:[],
       currentDir:[],
-      filePathArray:[]
+      filePathArray:[],
     },
     reducers : {
         save(state, data) {
@@ -78,15 +78,7 @@ export default {
                 console.log(data.message);
             }
         },
-        async  createDir(args){
-                let {data,data:{success}} = await api.createDir(args.sessionId,args.dirName);
-                if(success){
-                    actions.document.addTofileList(data);
-                    actions.document.showState();
-                }else{
-                    console.log(data.message);
-                }
-        },
+        
         async checkUpLoadFile(args){
                 let {data,data:{success}} = await api.checkUpLoadFile(args.sessionId,args.fileName);
                 if(success){
@@ -127,26 +119,8 @@ export default {
                 console.log(data.message);
             }
         },
-        async addLabelForDir(args){
-            let {data:currentDir, data:{success}} = await api.addLabel(args);
-            if(success){
-                actions.document.save({currentDir});
-            }
-        },
-        async getAllLabels(args){
-            let{data,data:{success}} = await api.getAllLabels(args);
-            if(success){
-                let _labels=[];
-                let {labelResponseDTOArrayList:labels} = data;
-                _labels=labels;
-                return _labels;
-            }
-        },
-        async checkLabel(args){
-            let{data:{success,data}} = await api.checkLabel(args);
-            if(success){
-                return data;
-            }
-        }
+        
+        
+       
     }
 }

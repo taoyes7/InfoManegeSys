@@ -13,6 +13,9 @@ export default {
                 ...state,
                 ...data
             }
+        }, 
+        getSessionId(state){
+            
         }
     },
     effects : {
@@ -38,5 +41,6 @@ export default {
                 alert("success");
             }
         }
+       
     }
 }
