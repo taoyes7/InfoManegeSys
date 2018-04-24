@@ -7,6 +7,8 @@ export default {
       fileList:[],
       currentDir:[],
       filePathArray:[],
+      rulesAndFiles:[],
+      key:0
     },
     reducers : {
         save(state, data) {
@@ -18,12 +20,46 @@ export default {
         img_upload(state){
             alert("img upload");
         },
-        addTofileList(state,data){
-             let fileList=state.fileList;
-            fileList.push(data);
+        insertToRulesAndFiles(state,data){
+            let rulesAndFiles = [];
+            let count=0;
+            let _count=0;
+            rulesAndFiles = data.rulesAndFiles;
+            console.log(data);
+            rulesAndFiles.map(function(ruleAndfile){
+                if(ruleAndfile.labelGroup.pid==data.file.labelGroup.pid){
+                    // ruleAndfile.fileResponseDTOArrayList.push(data.file.file);
+                    // rulesAndFiles.splice(count,1,ruleAndfile);
+                    // break;
+                    _count=count;
+                }
+                count++;
+            })
+            rulesAndFiles[_count].fileResponseDTOArrayList.push(data.file.file);
+            console.log(rulesAndFiles);
             return {
                 ...state,
-                ...{fileList}
+                ...{rulesAndFiles}
+            }
+        },
+        addRulesAndFiles(state,data){
+            let rulesAndFiles = [];
+            rulesAndFiles = data.rulesAndFiles;
+            console.log(data);
+            let ruleAndFile =  rulesAndFiles.pop();
+            ruleAndFile.fileResponseDTOArrayList.push(data.file);
+            rulesAndFiles.push(ruleAndFile);
+            console.log(rulesAndFiles);
+            return {
+                ...state,
+                ...{rulesAndFiles}
+            }
+        },
+        refresh(state){
+            let rulesAndFiles = [];
+            return {
+                ...state,
+                ...{rulesAndFiles}
             }
         },
         addTofilePathArray(state,data){
@@ -49,21 +85,21 @@ export default {
     },
     effects : {
         async  openRootDir(sessionId){
-            let {data,data:{success}} = await api.openRootDir(sessionId);
+            let {data:dirFileList,data:{success}} = await api.openRootDir(sessionId);
             
             if(success){
-                let {fileResponseDTOArrayList:fileList} = data;
-                actions.document.save({fileList});
+                let {rulesAndFileLIstResponseDTOArrayList:rulesAndFiles}=dirFileList;
+                actions.document.save({rulesAndFiles});
                 actions.document.getCurrentDir(sessionId);
             }else{
                 console.log(data.message);
             }
         },
         async openDir(args){
-            let {data,data:{success}} = await api.openDir(args);
+            let {data:dirFileList,data:{success}} = await api.openDir(args);
             if(success){
-                let {fileResponseDTOArrayList:fileList} = data;
-                actions.document.save({fileList});
+                let {rulesAndFileLIstResponseDTOArrayList:rulesAndFiles}=dirFileList;
+                actions.document.save({rulesAndFiles});
                 actions.document.getCurrentDir(args.sessionId);
             }else{
                 console.log(data.message);
@@ -110,15 +146,23 @@ export default {
             }
         },
         async backToParent(sessionId){
-            let {data,data:{success}} = await api.backToParent(sessionId);
+            let {data:dirFileList,data:{success}} = await api.backToParent(sessionId);
             if(success){
-                let {fileResponseDTOArrayList:fileList} = data;
-                actions.document.save({fileList});
+                let {rulesAndFileLIstResponseDTOArrayList:rulesAndFiles}=dirFileList;
+                actions.document.save({rulesAndFiles});
                 actions.document.getCurrentDir_back(sessionId);
             }else{
                 console.log(data.message);
             }
         },
+        async addTodirFileList(args){
+            await actions.document.refresh();
+            actions.document.addRulesAndFiles(args);
+        },
+        async insertTodirFileList(args){
+            await actions.document.refresh();
+            actions.document.insertToRulesAndFiles(args);
+        }
         
         
        

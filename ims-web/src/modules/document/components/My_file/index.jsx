@@ -24,8 +24,6 @@ export default class My_file extends Component{
                 {this.props.file.name}
             </div>
         )
-        
-        if(this.props.file.labels!=null){   
             return(
                 <div id="My_file">
                 <div id="My_file_file" onClick={this.item_click}>
@@ -57,20 +55,6 @@ export default class My_file extends Component{
                 </div>
                 </div>
             )
-        }else{
-            return(
-                <div id="My_file">
-                <div id="My_file_file" onClick={this.item_click}>
-                <img id="file_img" alt="图片加载失败" id="file_img" src={this.props.file.iconPath}/>
-                <Tooltip defaultOverlayShown={false} inverse overlay={tip_fileNmae}>
-                <p className="line-limit-length" id="file_name">{this.props.file.name}</p>
-                </Tooltip>
-                </div>
-                <div id="My_file_label">
-                
-                </div>
-                </div>
-            )
-        }  
+        
     }
 }

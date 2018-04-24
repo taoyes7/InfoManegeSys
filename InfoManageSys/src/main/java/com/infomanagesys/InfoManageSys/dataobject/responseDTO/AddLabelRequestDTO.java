@@ -2,7 +2,7 @@ package com.infomanagesys.InfoManageSys.dataobject.responseDTO;
 
 import java.io.Serializable;
 
-public class AddLabelRequestDTO implements Serializable {
+public class AddLabelRequestDTO extends ResponseDTO implements Serializable {
     private String sessionId;
     private FileResponseDTO file;
     private LabelResponseDTO label;

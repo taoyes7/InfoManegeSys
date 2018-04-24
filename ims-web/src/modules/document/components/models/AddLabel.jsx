@@ -81,10 +81,12 @@ export default {
             
             let showModel = false;
             let temp_labels = [];
+            let temp_tags = [];
             return {
                 ...state,
                 ...{showModel},
-                ...{temp_labels}
+                ...{temp_labels},
+                ...{temp_tags}
             }
         },
         newLabelC_onChange(state,e){
@@ -133,16 +135,15 @@ export default {
                 ...{newLabel_score}
             }
         },
-        onSelect() {},
-        onClose(index) {
-        console.log("index::",index)
-        }
+        // onSelect() { console.log("vvv::",index)},
+        // onClose(index) {
+        // console.log("index::",index)
+        // }
     },
     effects : {
         async mapForTempLabels(temp_labels){
             let key_label=0;
             if(temp_labels!=[]){
-                console.log(temp_labels);
                 let result=[];
                 temp_labels.map(function(label){
                         result.push(<Tag className="tag" key={key_label} color={label.color} >{label.color}</Tag>);
@@ -258,29 +259,6 @@ export default {
 }
 
 
-// this.state.temp_labels.map(function(label){
-//     if(label!=null){
-//        return(<Tag key={key_templabel} className="tag" color={label.color} 
-//        onClick={()=>{
-//             let _labels=shif.state.temp_labels;
-//             let count=0;
-//             let _count=0;
-//             _labels.map(function(_label){
-//                 if(_label==label){
-//                     _count=count;
-//                 }
-//                 count++;
-//             });
-//             _labels.splice(_count,1);
-//             shif.setState({
-//                 temp_labels:_labels
-//             }
-//         );
-//         console.log(shif.state.temp_labels);
-//        }} 
-//        >{label.content}</Tag>) 
-//        key_templabel++;
-//     }
-// })
+
 
 

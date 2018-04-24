@@ -11,11 +11,11 @@ import Doc_docs from '../Doc_docs';
 const Document= (props) =>{
   return (
       <div id="document" style={{maxHeight:700}}>
-      <Doc_menu id="doc_menu" sessionId={props.sessionId}> </Doc_menu>
+      <Doc_menu id="doc_menu" sessionId={props.sessionId} rulesAndFiles={props._state.rulesAndFiles}> </Doc_menu>
       <Divider id="doc_divider01"  type="vertical" />
       <Doc_dir id="doc_dir" sessionId={props.sessionId} currentDir={props._state.currentDir} filePathArray ={props._state.filePathArray}> </Doc_dir>
       <Divider id="doc_divider02"  type="vertical" />
-      <Doc_docs id="doc_docs" fileList={props._state.fileList} currentDir={props._state.currentDir} sessionId={props.sessionId}></Doc_docs>
+      <Doc_docs id="doc_docs" ></Doc_docs>
       </div>
     
   );

@@ -46,7 +46,12 @@ export default {
                 actions.createdir.newDir_close_ok();
                 let {data,data:{success}} = await api.createDir(args.sessionId,args.newDir_name);
                 if(success){
-                    actions.document.addTofileList(data);
+                    console.log(data);
+                    let _args={
+                        "rulesAndFiles":args.rulesAndFiles,
+                        "file":data
+                    }
+                    actions.document.addTodirFileList(_args);
                 }else{
                     console.log(data.message);
                 }

@@ -12,7 +12,8 @@ const CreateDir = (props) => {//组件定义
         console.log(props);
         let args={
             "newDir_name":props.state.newDir_name,
-            "sessionId":props.sessionId
+            "sessionId":props.sessionId,
+            "rulesAndFiles":props.rulesAndFiles
         }
         actions.createdir.createDir(args);
     }
@@ -54,6 +55,7 @@ const CreateDir = (props) => {//组件定义
 export default connect((state) => {//连接组件和状态管理
     return {
         state: state.createdir,
-        sessionId:state.login.sessionId
+        sessionId:state.login.sessionId,
+        rulesAndFiles:state.document.rulesAndFiles
     }
 })(CreateDir)

@@ -22,12 +22,11 @@ public class DocController {
     private UserServiceImpl userService;
 
     @RequestMapping(value = "/upLoadSingleFile", method = RequestMethod.POST)
-    public FileResponseDTO upLoadSingleFile(@RequestParam("sessionId") String sessionId, HttpServletRequest req,
+    public RuleAndFileResponseDTO upLoadSingleFile(@RequestParam("sessionId") String sessionId, HttpServletRequest req,
                                             MultipartHttpServletRequest multiReq) {
         if(userService.userCheck(sessionId)){
             MultipartFile file = multiReq.getFile("file1");
-            FileResponseDTO fileResponseDTO = docService.uploadFile(userService.getUserId(sessionId),file);
-            return fileResponseDTO;
+            return  docService.uploadFile(userService.getUserId(sessionId),file);
         }else {
             throw new UserCheckException("用户校验失败");
         }
@@ -50,21 +49,18 @@ public class DocController {
         }
     }
     @RequestMapping(value="/open/rootdir",method = RequestMethod.POST)
-    public FileResponseListDTO openRootDir(@RequestParam("sessionId") String sessionId){
+    public ClassfiyedFileResponseDTO openRootDir(@RequestParam("sessionId") String sessionId){
         if(userService.userCheck(sessionId)){
-            FileResponseListDTO fileResponseListDTO = new FileResponseListDTO();
-            fileResponseListDTO.setFileResponseDTOArrayList(docService.openRootDir(userService.getUserId(sessionId)));
-            return fileResponseListDTO;
+            return docService.openRootDir(userService.getUserId(sessionId));
+
         }else {
             throw new UserCheckException("用户校验失败");
         }
     }
     @RequestMapping(value="/open/dir", method = RequestMethod.POST)
-    public FileResponseListDTO openDir(@RequestParam("sessionId") String sessionId, @RequestParam("dirId") String dirId){
+    public ClassfiyedFileResponseDTO openDir(@RequestParam("sessionId") String sessionId, @RequestParam("dirId") String dirId){
         if(userService.userCheck(sessionId)){
-            FileResponseListDTO fileResponseListDTO = new FileResponseListDTO();
-            fileResponseListDTO.setFileResponseDTOArrayList(docService.openNewDir(userService.getUserId(sessionId),dirId));
-            return fileResponseListDTO;
+            return docService.openNewDir(userService.getUserId(sessionId),dirId);
         }else {
             throw new UserCheckException("用户校验失败");
         }
@@ -79,13 +75,11 @@ public class DocController {
     }
 
     @RequestMapping(value="/back/parent", method = RequestMethod.POST)
-    public FileResponseListDTO backToParent(@RequestParam("sessionId") String sessionId) {
+    public ClassfiyedFileResponseDTO backToParent(@RequestParam("sessionId") String sessionId) {
         if (userService.userCheck(sessionId)) {
-            FileResponseListDTO fileResponseListDTO = new FileResponseListDTO();
             String dirId = docService.getCurrentDir(userService.getUserId(sessionId)).getPid();
             dirId = docService.getParentFile(dirId).getPid();
-            fileResponseListDTO.setFileResponseDTOArrayList(docService.openNewDir(userService.getUserId(sessionId), dirId));
-            return fileResponseListDTO;
+            return docService.openNewDir(userService.getUserId(sessionId), dirId);
         } else {
             throw new UserCheckException("用户校验失败");
         }
@@ -132,6 +126,108 @@ public class DocController {
             throw new UserCheckException("用户校验失败");
         }
     }
+    @RequestMapping(value="/add/rules",method = RequestMethod.POST)
+    public FileResponseDTO addRule(@RequestParam("dir") String dir,
+                                    @RequestParam("label") String label,
+                                    @RequestParam("ruleName") String ruleName,
+                                    @RequestParam("sessionId") String sessionId,
+                                   @RequestParam("fileType") String fileType
+
+    ){
+        if (userService.userCheck(sessionId)) {
+            try{
+                JSONObject _dir = new JSONObject(dir);
+                JSONObject _label= new JSONObject(label);
+                JSONArray labels=new JSONArray(_label.getString("labels"));
+                JSONObject _fileType= new JSONObject(fileType);
+                JSONArray fileTypes=new JSONArray(_fileType.getString("fileTypes"));
+                return docService.addRuleToDir(userService.getUserId(sessionId),_dir,labels,ruleName,fileTypes);
+            }catch (Exception e){
+                e.printStackTrace();
+                throw new UserCheckException("参数解析出错");
+            }
+
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+
+    }
+    @RequestMapping(value="/get/classfiyrules",method = RequestMethod.POST)
+    public ClassfiyRuleResponseDTO getClassfiyRule(@RequestParam("sessionId") String sessionId,@RequestParam("dirId") String dirId){
+        if (userService.userCheck(sessionId)) {
+        return docService.getClassfiyRule(dirId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/delete/classfiyrules",method = RequestMethod.POST)
+    public ResponseDTO deleteClassfiyRule(@RequestParam("sessionId") String sessionId,@RequestParam("ruleId") String ruleId, @RequestParam("classfiyId") String classfiyId ){
+        if (userService.userCheck(sessionId)) {
+            return docService.deleteClassfiyRule(ruleId,classfiyId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/delete/label",method = RequestMethod.POST)
+    public ResponseDTO deleteLabel(@RequestParam("sessionId") String sessionId,@RequestParam("labelId") String labelId, @RequestParam("labelGroupId") String labelGroupId ){
+        if (userService.userCheck(sessionId)) {
+            return docService.deleteLabel(labelId,labelGroupId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/delete/filetype",method = RequestMethod.POST)
+    public ResponseDTO deleteFileType(@RequestParam("sessionId") String sessionId,@RequestParam("fileType") String fileType, @RequestParam("labelGroupId") String labelGroupId ){
+        if (userService.userCheck(sessionId)) {
+            return docService.deleteFileType(fileType,labelGroupId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/add/singlelabel",method = RequestMethod.POST)
+    public ResponseDTO addSingleLabel(@RequestParam("sessionId") String sessionId,@RequestParam("label") String label, @RequestParam("labelGroupId") String labelGroupId ){
+        if (userService.userCheck(sessionId)) {
+            try{
+                JSONObject _label= new JSONObject(label);
+                return docService.addSingleLabel(_label,labelGroupId);
+            }catch (Exception e){
+                e.printStackTrace();
+                throw new UserCheckException("参数解析出错");
+            }
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/add/singlefiletype",method = RequestMethod.POST)
+    public ResponseDTO addSingleFileType(@RequestParam("sessionId") String sessionId,@RequestParam("fileType") String fileType, @RequestParam("labelGroupId") String labelGroupId ){
+        if (userService.userCheck(sessionId)) {
+            try{
+                return docService.addSingleFileType(fileType,labelGroupId);
+            }catch (Exception e){
+                e.printStackTrace();
+                throw new UserCheckException("参数解析出错");
+            }
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/exchange/level",method = RequestMethod.POST)
+    public ResponseDTO exchangeLevel(@RequestParam("sessionId") String sessionId,@RequestParam("curPid") String curPid, @RequestParam("nextPid") String nextPid,@RequestParam("classfiyRuleId") String classfiyRuleId ){
+        if (userService.userCheck(sessionId)) {
+                return docService.exchangeLevel(curPid,nextPid,classfiyRuleId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/get/classfiyed/file",method = RequestMethod.POST)
+    public ClassfiyedFileResponseDTO getClassfiyedFile(@RequestParam("sessionId") String sessionId,@RequestParam("dirId") String dirId){
+        if (userService.userCheck(sessionId)) {
+            return docService.getClassfiyedFile(dirId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+
 
 }
 

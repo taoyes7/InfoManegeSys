@@ -3,38 +3,37 @@ import './index.less';
 import {Avatar,Divider  } from 'uiw';
 import { Modal, FormControl, Label, FormGroup, Button, Upload, Icon } from 'tinper-bee';
 import mirror, { actions, connect } from "mirrorx";
-import My_file from '../My_file';
+import GroupFile from '../GroupFile';
+import FreeScrollBar from 'react-free-scrollbar';
 
-export default class Doc_docs extends Component{
-    constructor(props) {
-        super(props);
-    }
-    
-    
-    render(){ 
-       let key=0;
-       let shif = this;
+  const Doc_docs= (props)=>{ 
+
+       let _key=0;
         return (<div id="doc_docs" > 
-        <center><h1>{this.props.currentDir.name}</h1></center>
-        <Divider style={{margin:'0px'}}/>   
-        <div id="doc_docs_files">
+        <center><h1 >{props.currentDir.name}</h1></center>
+        <FreeScrollBar>
+        <Divider style={{margin:'0px'}}/> 
         { 
-            
-            this.props.fileList.map(function(file){
-                key++;
+
+            props.rulesAndFiles.map(function(rulesAndFile){
+                    _key=_key+1;
                     return(
-                        <My_file key={key} file={file} sessionId={shif.props.sessionId}></My_file>
-                    ) 
+                        <GroupFile key={"doc-"+_key} _key={"doc-"+_key} rulesAndFile={rulesAndFile}></GroupFile>
+                        
+                    ); 
+                   
+                    
             })
         }
-        </div> 
+        </FreeScrollBar>
         </div>)
-      } 
+       
 }
 
-
-// export default connect((state) => {//连接组件和状态管理
-//     return {
-//         fileList: state.document.fileList
-//     }   
-// })(Doc_docs)
+export default connect((state) => {//连接组件和状态管理
+    return {
+        rulesAndFiles:state.document.rulesAndFiles,
+        sessionId:state.login.sessionId,
+        currentDir:state.document.currentDir
+    }   
+})(Doc_docs)

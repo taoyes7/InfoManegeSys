@@ -39,11 +39,15 @@ export default class Doc_menu extends Component{
       if (info.file.status === 'done') {
         
           if(info.file.response.success){
-              actions.document.addTofileList(info.file.response);
+              let args={
+                    "file":info.file.response,
+                    "rulesAndFiles":this.props.rulesAndFiles
+              };
+              actions.document.insertTodirFileList(args);
             console.log(`${info.file.name} file uploaded successfully`);
           }else{
             console.log(`${info.file.name} file upload failed.`);
-            console.log(info.file.response.message);
+            console.log(info.file.response);
             alert(info.file.response.message);
           }
         

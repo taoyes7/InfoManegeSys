@@ -8,11 +8,11 @@ import com.infomanagesys.InfoManageSys.dataobject.entity.doc.DocFile;
 import com.infomanagesys.InfoManageSys.dataobject.entity.doc.DocFileInfo;
 import com.infomanagesys.InfoManageSys.dataobject.entity.label.DirClassifyRules;
 import com.infomanagesys.InfoManageSys.dataobject.entity.label.Label;
+import com.infomanagesys.InfoManageSys.dataobject.entity.label.LabelGroup;
 import com.infomanagesys.InfoManageSys.dataobject.enums.DocTypeEnum;
+import com.infomanagesys.InfoManageSys.dataobject.enums.RuleGroupEnum;
 import com.infomanagesys.InfoManageSys.dataobject.enums.TempTypeEnum;
-import com.infomanagesys.InfoManageSys.dataobject.responseDTO.AllLabelResponseDTO;
-import com.infomanagesys.InfoManageSys.dataobject.responseDTO.FileResponseDTO;
-import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LabelResponseDTO;
+import com.infomanagesys.InfoManageSys.dataobject.responseDTO.*;
 import com.infomanagesys.InfoManageSys.exception.FileExistException;
 import com.infomanagesys.InfoManageSys.service.doc.itf.IDocService;
 import com.infomanagesys.InfoManageSys.util.Pid;
@@ -40,6 +40,7 @@ public class DocServiceImpl implements IDocService
     private final NLPServiceImpl nlpService;
     private final DirClassifyRulesRepository dirClassifyRulesRepository;
     private final LabelRepository labelRepository;
+    private final LabelGroupRepository labelGroupRepository;
 
     @Autowired
     public DocServiceImpl(final DocFileRepository docFileRepository,
@@ -48,7 +49,8 @@ public class DocServiceImpl implements IDocService
                           final NLPServiceImpl nlpService,
                           final DocFileInfoRepository docFileInfoRepository,
                           final DirClassifyRulesRepository dirClassifyRulesRepository,
-                          final LabelRepository labelRepository){
+                          final LabelRepository labelRepository,
+                          final LabelGroupRepository labelGroupRepository){
         this.docFileRepository=docFileRepository;
         this.docDirRepository=docDirRepository;
         this.tempTableRepository=tempTableRepository;
@@ -56,9 +58,10 @@ public class DocServiceImpl implements IDocService
         this.docFileInfoRepository = docFileInfoRepository;
         this.dirClassifyRulesRepository = dirClassifyRulesRepository;
         this.labelRepository=labelRepository;
+        this.labelGroupRepository = labelGroupRepository;
     }
     @Override
-    public FileResponseDTO uploadFile(String userId, MultipartFile file){
+    public RuleAndFileResponseDTO uploadFile(String userId, MultipartFile file){
 
     // 获取上传文件的路径
         String uploadFilePath = file.getOriginalFilename();
@@ -136,7 +139,11 @@ public class DocServiceImpl implements IDocService
         docFileRepository.save(docFile);
         FileResponseDTO fileResponseDTO = parseDocFileToDTO(docFile);
         fileResponseDTO.setLabels(labelResponseDTOArrayList);
-        return fileResponseDTO;
+        RuleAndFileResponseDTO ruleAndFileResponseDTO = new RuleAndFileResponseDTO();
+        ruleAndFileResponseDTO.setLabelGroup(getLabelGroupByFile(parentDir.getPid(),fileResponseDTO));
+        ruleAndFileResponseDTO.setFile(fileResponseDTO);
+        return ruleAndFileResponseDTO;
+
     }
     @Override
     public FileResponseDTO createDir(String userId, String dirName){
@@ -191,7 +198,7 @@ public class DocServiceImpl implements IDocService
     }
     @Override
     @Transactional
-    public ArrayList<FileResponseDTO> openNewDir(String userId, String dirId){
+    public ClassfiyedFileResponseDTO openNewDir(String userId, String dirId){
         if(tempTableRepository.findFirstByTempUserAndTempType(userId, TempTypeEnum.TEMP_TYPE_CURRENTDIR.getKey())!=null)
         {
             tempTableRepository.updateValue(dirId,userId,TempTypeEnum.TEMP_TYPE_CURRENTDIR.getKey());
@@ -203,11 +210,12 @@ public class DocServiceImpl implements IDocService
                     .withTempUser(userId).build());
         }
 
-            return getChildFile(dirId);
+//            return getChildFile(dirId);
+        return getClassfiyedFile(dirId);
     }
     @Override
     @Transactional
-    public ArrayList<FileResponseDTO> openRootDir(String userId){
+    public ClassfiyedFileResponseDTO openRootDir(String userId){
         String dirId = docDirRepository.findFirstByLevelAndUser(0, userId).getPid();
         if(tempTableRepository.findFirstByTempUserAndTempType(userId, TempTypeEnum.TEMP_TYPE_CURRENTDIR.getKey())!=null)
         {
@@ -220,8 +228,10 @@ public class DocServiceImpl implements IDocService
                     .withTempUser(userId).build());
         }
 
-        return getChildFile(dirId);
+//        return getChildFile(dirId);
+        return getClassfiyedFile(dirId);
     }
+
     @Override
     public FileResponseDTO getCurrentDir(String userId){
         TempTable tempTable=tempTableRepository.findFirstByTempUserAndTempType(userId, TempTypeEnum.TEMP_TYPE_CURRENTDIR.getKey());
@@ -309,7 +319,403 @@ public class DocServiceImpl implements IDocService
         }
 
     }
+    @Override
+    @Transactional
+    public FileResponseDTO addRuleToDir(String userId,JSONObject dir,JSONArray labels,String ruleName,JSONArray fileTypes){
+        int priorityLevel;
+        JSONArray labelsGroup =new JSONArray();
+        JSONArray groupLabels =new JSONArray();
+        JSONArray groupFileTypes =new JSONArray();
+        String dirId="";
+        try{
+            dirId = dir.getString("pid");
+            DocDir docDir = docDirRepository.findFirstByPidAndUser(dirId,userId);
+            String classfiyRulesId = docDir.getClassifyRules();
+            DirClassifyRules dirClassifyRules = dirClassifyRulesRepository.findFirstByPid(classfiyRulesId);
+            if(dirClassifyRules.getLabelsGroup()!=null){
+                labelsGroup = new JSONArray(dirClassifyRules.getLabelsGroup());
+                if(labelsGroup.length()>0){
+                    JSONObject labelGroup = new JSONObject(labelsGroup.getString(labelsGroup.length()-1));
+                    priorityLevel = labelGroupRepository.findFirstByPid(labelGroup.getString("pid")).getPriorityLevel()+1;
+                } else {
+                    priorityLevel=0;
+                }
+            }else {
+                priorityLevel=0;
+            }
+            for(int i=0;i<labels.length();i++) {
+                JSONObject label = new JSONObject(labels.getString(i));
+                JSONObject _label = new JSONObject();
+                _label.put("pid",label.getString("pid"));
+                _label.put("group",label.getString("group"));
+                groupLabels.put(_label);
+            }
+            for(int i=0;i<fileTypes.length();i++) {
+                JSONObject fileType = new JSONObject(fileTypes.getString(i));
+                JSONObject _fileType = new JSONObject();
+                _fileType.put("name",fileType.getString("name"));
+                groupFileTypes.put(_fileType);
+            }
+            LabelGroup labelGroup = labelGroupRepository.save(LabelGroup.labelGroupBuilder()
+                    .withPid(Pid.getPid())
+                    .withLabels(groupLabels.toString())
+                    .withFileType(groupFileTypes.toString())
+                    .withPriorityLevel(priorityLevel)
+                    .withName(ruleName)
+                    .build()
+            );
+            JSONObject _labelGroup = new JSONObject();
+            _labelGroup.put("pid",labelGroup.getPid());
+            labelsGroup.put(_labelGroup);
+            dirClassifyRulesRepository.updateLabelsGroupByPid(labelsGroup.toString(),classfiyRulesId);
 
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return parseDocDirToDTO(docDirRepository.findFirstByPid(dirId));
+
+    }
+
+    @Override
+    public ClassfiyRuleResponseDTO getClassfiyRule( String dirId){
+        ClassfiyRuleResponseDTO classfiyRuleResponseDTO = new ClassfiyRuleResponseDTO();
+        DocDir docDir = docDirRepository.findFirstByPid(dirId);
+        String classfiyId = docDir.getClassifyRules();
+        ArrayList<LabelGroupResponseDTO> labelGroups = new ArrayList<LabelGroupResponseDTO>();
+        JSONArray _labelGroups = new JSONArray();
+
+        DirClassifyRules dirClassifyRules = dirClassifyRulesRepository.findFirstByPid(classfiyId);
+        classfiyRuleResponseDTO.setDirId(dirId);
+        classfiyRuleResponseDTO.setName(dirClassifyRules.getName());
+        classfiyRuleResponseDTO.setPid(dirClassifyRules.getPid());
+        if(dirClassifyRules.getLabelsGroup()!=null){
+            try {
+                _labelGroups = new JSONArray(dirClassifyRules.getLabelsGroup());
+                for(int i=0;i<_labelGroups.length();i++){
+                    LabelGroupResponseDTO labelGroupResponseDTO = new LabelGroupResponseDTO();
+
+                    LabelGroup labelGroup = labelGroupRepository.findFirstByPid(new JSONObject(_labelGroups.getString(i)).getString("pid"));
+                    ArrayList<LabelResponseDTO> labelResponseDTOArrayList = new ArrayList<LabelResponseDTO>();
+                    ArrayList<String> fileTypeArrayList = new ArrayList<String>();
+                    JSONArray labaels = new JSONArray(labelGroup.getLabels());
+                    JSONArray fileTypes = new JSONArray(labelGroup.getFileType());
+                    for(int j=0;j<labaels.length();j++){
+                        Label label = labelRepository.findFirstByPid(new JSONObject(labaels.getString(j)).getString("pid"));
+                        LabelResponseDTO labelResponseDTO = parseLabelToDTO(label);
+                        labelResponseDTO.setColor(RuleGroupEnum.getEnumByGroup(new JSONObject(labaels.getString(j)).getString("group")).getColor());
+                        labelResponseDTOArrayList.add(labelResponseDTO);
+                    }
+                    for(int j=0;j<fileTypes.length();j++){
+                        JSONObject fileType = new JSONObject(fileTypes.getString(j));
+                        fileTypeArrayList.add(fileType.getString("name"));
+                    }
+                    labelGroupResponseDTO.setFileTypes(fileTypeArrayList);
+                    labelGroupResponseDTO.setLabels(labelResponseDTOArrayList);
+                    labelGroupResponseDTO.setName(labelGroup.getName());
+                    labelGroupResponseDTO.setPid(labelGroup.getPid());
+                    labelGroupResponseDTO.setPriorityLevel(labelGroup.getPriorityLevel());
+                    labelGroups.add(labelGroupResponseDTO);
+
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+//        ArrayList<LabelGroupResponseDTO> rankLabelGroups = new ArrayList<LabelGroupResponseDTO>();
+
+//        int length = labelGroups.size();
+//        for(int i=0;i<length;i++){
+//            int temp_k=100;
+//            int temp_j=0;
+//            for (int j=0;j<labelGroups.size();j++){
+//                if(temp_k>labelGroups.get(j).getPriorityLevel()){
+//                    temp_k = labelGroups.get(j).getPriorityLevel();
+//                    temp_j = j;
+//                }
+//            }
+//            rankLabelGroups.add(labelGroups.get(temp_j));
+//            labelGroups.remove(temp_j);
+//        }
+
+        classfiyRuleResponseDTO.setLabelGroups(labelGroups);
+        return classfiyRuleResponseDTO;
+
+    }
+
+    @Override
+    @Transactional
+    public ResponseDTO deleteClassfiyRule(String ruleId, String classfiyId){
+        labelGroupRepository.deleteByPid(ruleId);
+        DirClassifyRules dirClassifyRules = dirClassifyRulesRepository.findFirstByPid(classfiyId);
+        try {
+            JSONArray labelsGroup = new JSONArray(dirClassifyRules.getLabelsGroup());
+            for(int i=0;i<labelsGroup.length();i++){
+                JSONObject labelGroup = new JSONObject(labelsGroup.getString(i));
+                String _ruleId = labelGroup.getString("pid");
+                if(_ruleId.equals(ruleId)){
+                    labelsGroup.remove(i);
+                    break;
+                }
+            }
+            dirClassifyRulesRepository.updateLabelsGroupByPid(labelsGroup.toString(),classfiyId);
+            return new ResponseDTO();
+        }catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    @Override
+    @Transactional
+    public ResponseDTO deleteLabel(String labelId,String labelGroupId){
+       LabelGroup labelGroup = labelGroupRepository.findFirstByPid(labelGroupId);
+       try {
+           JSONArray labels = new JSONArray(labelGroup.getLabels());
+           for(int i=0;i<labels.length();i++){
+               JSONObject label = new JSONObject(labels.getString(i));
+               if(label.getString("pid").equals(labelId)){
+                   labels.remove(i);
+                   break;
+               }
+           }
+           labelGroupRepository.updateLabelsByPid(labels.toString(),labelGroupId);
+           return  new ResponseDTO();
+       }catch (Exception e){
+           e.printStackTrace();
+           return null;
+       }
+    }
+    @Override
+    @Transactional
+    public ResponseDTO deleteFileType(String fileType,String labelGroupId){
+        LabelGroup labelGroup = labelGroupRepository.findFirstByPid(labelGroupId);
+        try {
+            JSONArray fileTypes = new JSONArray(labelGroup.getFileType());
+            for(int i=0;i<fileTypes.length();i++){
+                JSONObject _fileType = new JSONObject(fileTypes.getString(i));
+                if(_fileType.getString("name").equals(fileType)){
+                    fileTypes.remove(i);
+                    break;
+                }
+            }
+            labelGroupRepository.updateFileTypesByPid(fileTypes.toString(),labelGroupId);
+            return  new ResponseDTO();
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @Override
+    @Transactional
+    public ResponseDTO addSingleLabel(JSONObject label,String labelGroupId){
+        LabelGroup labelGroup = labelGroupRepository.findFirstByPid(labelGroupId);
+        try {
+            JSONArray labels = new JSONArray(labelGroup.getLabels());
+            JSONObject _label = new JSONObject();
+            _label.put("pid",label.getString("pid"));
+            _label.put("group",label.getString("group"));
+            labels.put(_label);
+            labelGroupRepository.updateLabelsByPid(labels.toString(),labelGroupId);
+            return  new ResponseDTO();
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @Override
+    @Transactional
+    public ResponseDTO addSingleFileType(String fileType,String labelGroupId){
+        LabelGroup labelGroup = labelGroupRepository.findFirstByPid(labelGroupId);
+        try {
+            JSONArray fileTypes = new JSONArray(labelGroup.getFileType());
+            JSONObject _fileType = new JSONObject();
+            _fileType.put("name",fileType);
+            fileTypes.put(_fileType);
+            labelGroupRepository.updateFileTypesByPid(fileTypes.toString(),labelGroupId);
+            return  new ResponseDTO();
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @Override
+    @Transactional
+    public ResponseDTO exchangeLevel(String curPid,String nextPid,String classfiyRuleId){
+        DirClassifyRules dirClassifyRules = dirClassifyRulesRepository.findFirstByPid(classfiyRuleId);
+        try {
+            JSONArray labelsGroup = new JSONArray(dirClassifyRules.getLabelsGroup());
+
+            for(int i=0;i<labelsGroup.length();i++){
+                JSONObject labelGroup = new JSONObject(labelsGroup.getString(i));
+                if(labelGroup.getString("pid").equals(nextPid)){
+                    JSONObject nextObject = new JSONObject();
+                    JSONObject curObject = new JSONObject();
+                    nextObject.put("pid",nextPid);
+                    curObject.put("pid",curPid);
+                    labelsGroup.put(i,curObject);
+                    labelsGroup.put(i+1,nextObject);
+                    LabelGroup curGroup = labelGroupRepository.findFirstByPid(curPid);
+                    LabelGroup nectGroup = labelGroupRepository.findFirstByPid(nextPid);
+                    int temp_c = curGroup.getPriorityLevel();
+                    int temp_n = nectGroup.getPriorityLevel();
+                    labelGroupRepository.updateLevelByPid(temp_c,nextPid);
+                    labelGroupRepository.updateLevelByPid(temp_n,curPid);
+                    break;
+                }
+            }
+            dirClassifyRulesRepository.updateLabelsGroupByPid(labelsGroup.toString(),classfiyRuleId);
+            return new ResponseDTO();
+        }catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @Override
+    public ClassfiyedFileResponseDTO getClassfiyedFile(String dirId){
+        ClassfiyedFileResponseDTO classfiyedFileResponseDTO = new ClassfiyedFileResponseDTO();
+        ArrayList<RulesAndFileLIstResponseDTO> rulesAndFileLIstResponseDTOArrayList = new ArrayList<RulesAndFileLIstResponseDTO>();
+
+        ArrayList<FileResponseDTO> fileResponseDTOArrayList = getChildFile(dirId);
+        ClassfiyRuleResponseDTO classfiyRuleResponseDTO = getClassfiyRule(dirId);
+        for(LabelGroupResponseDTO labelGroupResponseDTO:classfiyRuleResponseDTO.getLabelGroups()){
+
+            RulesAndFileLIstResponseDTO rulesAndFileLIstResponseDTO = new RulesAndFileLIstResponseDTO();
+            LabelGroupResponseDTO labelGroup = labelGroupResponseDTO;
+            ArrayList<FileResponseDTO> fileArrayList = new ArrayList<FileResponseDTO>();
+
+            for(FileResponseDTO fileResponseDTO : fileResponseDTOArrayList){
+                if(labelGroupResponseDTO.getFileTypes().size()>0&&labelGroupResponseDTO.getFileTypes().indexOf(fileResponseDTO.getType())<0){
+                    break;
+                }
+                boolean isAnd=true;
+                boolean isOr=false;
+                boolean isNo=true;
+                boolean haveGreen=false;
+                for(LabelResponseDTO labelResponseDTO : labelGroupResponseDTO.getLabels()){
+                    if(labelResponseDTO.getColor()=="red"){
+                        isAnd=false;
+                        if(fileResponseDTO.getLabels()!=null){
+                            for(LabelResponseDTO fileLabel:fileResponseDTO.getLabels()){
+                                if(fileLabel.getContent().equals(labelResponseDTO.getContent())){
+                                    isAnd=true;
+                                    break;
+                                }
+                            }
+                        }
+                        if(!isAnd){
+                            break;
+                        }
+                    }else if(labelResponseDTO.getColor()=="green"){
+                        haveGreen=true;
+                        if(fileResponseDTO.getLabels()!=null) {
+                            for (LabelResponseDTO fileLabel : fileResponseDTO.getLabels()) {
+                                if (fileLabel.getContent().equals(labelResponseDTO.getContent())) {
+                                    isOr = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }else if(labelResponseDTO.getColor()=="#52575c"){
+                        if(fileResponseDTO.getLabels()!=null) {
+                            for (LabelResponseDTO fileLabel : fileResponseDTO.getLabels()) {
+                                if (fileLabel.getContent().equals(labelResponseDTO.getContent())) {
+                                    isNo = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if(!isNo){
+                            break;
+                        }
+                    }
+                }
+                if(isAnd&&isNo){
+                    if((!haveGreen)||(haveGreen&&isOr)){
+                        fileArrayList.add(fileResponseDTO);
+                    }
+                }
+            }
+            for(FileResponseDTO fileResponseDTO : fileArrayList){
+                fileResponseDTOArrayList.remove(fileResponseDTO);
+            }
+            rulesAndFileLIstResponseDTO.setLabelGroup(labelGroup);
+            rulesAndFileLIstResponseDTO.setFileResponseDTOArrayList(fileArrayList);
+            rulesAndFileLIstResponseDTOArrayList.add(rulesAndFileLIstResponseDTO);
+        }
+        if(fileResponseDTOArrayList.size()>0){
+            RulesAndFileLIstResponseDTO rulesAndFileLIstResponseDTO = new RulesAndFileLIstResponseDTO();
+            LabelGroupResponseDTO labelGroup = new LabelGroupResponseDTO();
+            labelGroup.setName("其他");
+            rulesAndFileLIstResponseDTO.setLabelGroup(labelGroup);
+            rulesAndFileLIstResponseDTO.setFileResponseDTOArrayList(fileResponseDTOArrayList);
+            rulesAndFileLIstResponseDTOArrayList.add(rulesAndFileLIstResponseDTO);
+        }
+        classfiyedFileResponseDTO.setDirId(dirId);
+        classfiyedFileResponseDTO.setRulesAndFileLIstResponseDTOArrayList(rulesAndFileLIstResponseDTOArrayList);
+        return classfiyedFileResponseDTO;
+
+    }
+    public LabelGroupResponseDTO getLabelGroupByFile(String dirId, FileResponseDTO file){
+        ClassfiyRuleResponseDTO classfiyRuleResponseDTO = getClassfiyRule(dirId);
+        for(LabelGroupResponseDTO labelGroupResponseDTO:classfiyRuleResponseDTO.getLabelGroups()){
+
+                if(labelGroupResponseDTO.getFileTypes().size()>0&&labelGroupResponseDTO.getFileTypes().indexOf(file.getType())<0){
+                    break;
+                }
+                boolean isAnd=true;
+                boolean isOr=false;
+                boolean isNo=true;
+                boolean haveGreen=false;
+                for(LabelResponseDTO labelResponseDTO : labelGroupResponseDTO.getLabels()){
+                    if(labelResponseDTO.getColor()=="red"){
+                        isAnd=false;
+                        if(file.getLabels()!=null){
+                            for(LabelResponseDTO fileLabel:file.getLabels()){
+                                if(fileLabel.getContent().equals(labelResponseDTO.getContent())){
+                                    isAnd=true;
+                                    break;
+                                }
+                            }
+                        }
+                        if(!isAnd){
+                            break;
+                        }
+                    }else if(labelResponseDTO.getColor()=="green"){
+                        haveGreen=true;
+                        if(file.getLabels()!=null) {
+                            for (LabelResponseDTO fileLabel : file.getLabels()) {
+                                if (fileLabel.getContent().equals(labelResponseDTO.getContent())) {
+                                    isOr = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }else if(labelResponseDTO.getColor()=="#52575c"){
+                        if(file.getLabels()!=null) {
+                            for (LabelResponseDTO fileLabel : file.getLabels()) {
+                                if (fileLabel.getContent().equals(labelResponseDTO.getContent())) {
+                                    isNo = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if(!isNo){
+                            break;
+                        }
+                    }
+                }
+                if(isAnd&&isNo){
+                    if((!haveGreen)||(haveGreen&&isOr)){
+                        return  labelGroupResponseDTO;
+                    }
+                }
+        }
+        LabelGroupResponseDTO labelGroup = new LabelGroupResponseDTO();
+        labelGroup.setName("其他");
+        return labelGroup;
+    }
     private FileResponseDTO parseDocDirToDTO(DocDir docDir){
         FileResponseDTO fileResponseDTO = new FileResponseDTO();
         fileResponseDTO.setName(docDir.getName());
@@ -335,6 +741,8 @@ public class DocServiceImpl implements IDocService
             }catch (Exception e){
                 e.printStackTrace();
             }
+        }else {
+            fileResponseDTO.setLabels(new ArrayList<LabelResponseDTO>());
         }
         return fileResponseDTO;
     }

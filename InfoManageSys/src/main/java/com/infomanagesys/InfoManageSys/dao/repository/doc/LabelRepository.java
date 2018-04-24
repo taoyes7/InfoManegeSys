@@ -8,4 +8,5 @@ import java.util.ArrayList;
 public interface LabelRepository extends JpaRepository<Label, Long> {
     Label findFirstByContent(String content);
     ArrayList<Label> findByUser(String user);
+    Label findFirstByPid(String pid);
 }

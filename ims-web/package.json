@@ -41,6 +41,7 @@
     "moment": "^2.21.0",
     "query-string": "^5.1.0",
     "rc-form": "^2.1.7",
+    "react-free-scrollbar": "^0.3.1",
     "uiw": "^1.7.0"
   }
 }

@@ -107,7 +107,7 @@ public class LabelGroup implements Serializable {
     }
 
     // ---------- create builder ----------//
-    public static LabelGroupBuilder dirClassifyRulesBuilderBuilder(){
+    public static LabelGroupBuilder labelGroupBuilder(){
         return new LabelGroupBuilder();
     }
     public static class LabelGroupBuilder{

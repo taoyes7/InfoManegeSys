@@ -18,7 +18,7 @@ mirror.hook((action, getState) => {
   }
 });
 
-export default connect((state) =>  {//连接组件和状态管理
+export default connect((state) => {//连接组件和状态管理
   return {
       _state: state.document,
       sessionId:state.login.sessionId

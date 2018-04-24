@@ -39,8 +39,8 @@ const AddLabel = (props) => {
             defaultActive="1"
             defaultOpened={['5']}
             style={{width:240}}
-            onClose={() => actions.addLabel.onClose()}
-            onSelect={() => actions.addLabel.onSelect()}
+            // onClose={() => actions.addLabel.onClose()}
+            // onSelect={() => actions.addLabel.onSelect()}
           >
             <Menu.Item index="1"><Icon type="date" />标签分类</Menu.Item>
             <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>统一标签类型</span></span>}>
@@ -143,14 +143,14 @@ const AddLabel = (props) => {
                     <div onClick={ ()=> actions.addLabel.switchAddLabel_create()}>创建新标签</div>
                     <Collapse in={props.state.addLabel_create}>
                     <div >
-                    <div key={0} className="label-input-layout">
+                    <div  className="label-input-layout">
                         <div className="label-input-tag">标签内容:</div>
                         <FormControl className = "input-size"
                             value={props.state.newLabel_content}
                             onChange={(e)=>actions.addLabel.newLabelC_onChange(e)}
                             />
                     </div>
-                    <div key={1} className="label-input-layout">
+                    <div  className="label-input-layout">
                         <div className="label-input-tag">标签描述:</div>
                         <FormControl className = "input-size"
                         value={props.state.newLabel_describe}
@@ -158,7 +158,7 @@ const AddLabel = (props) => {
                         />
                     </div>
 
-                    <div className="label-input-layout">
+                    <div  className="label-input-layout">
                     <div onClick={ ()=> actions.addLabel.switchAddLabel_create_color()}>
                     <Tag className="tag" color={props.state.newLabel_color} >{props.state.newLabel_color}</Tag>
                     </div>
