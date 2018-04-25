@@ -8,9 +8,24 @@ export default {
       currentDir:[],
       filePathArray:[],
       rulesAndFiles:[],
+      select_labelGroup:{
+          "name":null
+      },
+      select_fileList:[],
       key:0
     },
     reducers : {
+        clearSelect(state){
+            let select_labelGroup={
+                "name":null
+            };
+            let select_fileList =[];
+            return {
+                ...state,
+                ...{select_labelGroup},
+                ...{select_fileList}
+            }
+        },
         save(state, data) {
             return {
                 ...state,
@@ -86,11 +101,12 @@ export default {
     effects : {
         async  openRootDir(sessionId){
             let {data:dirFileList,data:{success}} = await api.openRootDir(sessionId);
-            
             if(success){
                 let {rulesAndFileLIstResponseDTOArrayList:rulesAndFiles}=dirFileList;
                 actions.document.save({rulesAndFiles});
                 actions.document.getCurrentDir(sessionId);
+                actions.docMenu.getAllLabelType({"sessionId":sessionId});
+                actions.docMenu.getAllLabelsByGroup({"sessionId":sessionId});
             }else{
                 console.log(data.message);
             }
@@ -108,8 +124,13 @@ export default {
         async getCurrentDir(sessionId){
             let {data:currentDir,data:{success}} = await api.getCurrentDir(sessionId);
             if(success){
-                actions.document.save({currentDir});
-                actions.document.addTofilePathArray(currentDir);
+                await actions.document.save({currentDir});
+                await actions.document.addTofilePathArray(currentDir);
+                let args ={
+                    "sessionId":sessionId,
+                    "dirId":currentDir.pid
+                }
+                actions.select.loadFileTypesAndLabels(args);
             }else{
                 console.log(data.message);
             }
@@ -139,8 +160,14 @@ export default {
         async getCurrentDir_back(sessionId){
             let {data:currentDir,data:{success}} = await api.getCurrentDir(sessionId);
             if(success){
-                actions.document.save({currentDir});
-                actions.document.popFromfilePathArray();
+                await actions.document.save({currentDir});
+                await actions.document.popFromfilePathArray();
+                let args ={
+                    "sessionId":sessionId,
+                    "dirId":currentDir.pid
+                }
+                
+                actions.select.loadFileTypesAndLabels(args);
             }else{
                 console.log(data.message);
             }

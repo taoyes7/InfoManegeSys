@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping(value = "/doc/")
@@ -110,6 +111,14 @@ public class DocController {
     public AllLabelResponseDTO getALlLabel(@RequestParam("sessionId") String sessionId){
         if (userService.userCheck(sessionId)) {
             return docService.getAllLabels(userService.getUserId(sessionId));
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value = "/get/alllabels/group", method = RequestMethod.POST)
+    public LabelGroupDTOS getALlLabelByGroup(@RequestParam("sessionId") String sessionId){
+        if (userService.userCheck(sessionId)) {
+            return docService.getAllLabelsByGroup(userService.getUserId(sessionId));
         }else {
             throw new UserCheckException("用户校验失败");
         }
@@ -223,6 +232,51 @@ public class DocController {
     public ClassfiyedFileResponseDTO getClassfiyedFile(@RequestParam("sessionId") String sessionId,@RequestParam("dirId") String dirId){
         if (userService.userCheck(sessionId)) {
             return docService.getClassfiyedFile(dirId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+        @RequestMapping(value="/get/curdir/labelandtype",method = RequestMethod.POST)
+    public LabelGroupResponseDTO getCurDirLabelAndType(@RequestParam("sessionId") String sessionId,@RequestParam("dirId") String dirId){
+        if (userService.userCheck(sessionId)) {
+            return docService.getCurDirLabelAndType(dirId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/select/files",method = RequestMethod.POST)
+    public RulesAndFileLIstResponseDTO selectFiles(@RequestParam("sessionId") String sessionId,@RequestParam("dirId") String dirId,@RequestParam("label") String label,@RequestParam("fileType") String fileType){
+        if (userService.userCheck(sessionId)) {
+            try {
+                JSONObject labels = new JSONObject(label);
+                JSONObject fileTypes = new JSONObject(fileType);
+                JSONArray _labels = new JSONArray(labels.getString("labels"));
+                JSONArray _fileTypes = new JSONArray(fileTypes.getString("fileTypes"));
+                return docService.selectFiles(dirId,_labels,_fileTypes);
+            }catch (Exception e){
+                e.printStackTrace();
+                throw new UserCheckException("参数解析出错");
+            }
+
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/create/label/type",method = RequestMethod.POST)
+    public LabelTypeResponseDTO CreateLabelType(@RequestParam("sessionId") String sessionId,@RequestParam("name") String name,@RequestParam("description") String description){
+        if (userService.userCheck(sessionId)) {
+
+                return docService.CreateLabelType(userService.getUserId(sessionId),name,description);
+
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/get/all/labeltypes",method = RequestMethod.POST)
+    public LabelTypeDTOS GetAllLabelTypes(@RequestParam("sessionId") String sessionId){
+        if (userService.userCheck(sessionId)) {
+            return docService.GetAllLabelTypes(userService.getUserId(sessionId));
+
         }else {
             throw new UserCheckException("用户校验失败");
         }

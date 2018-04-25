@@ -3,9 +3,11 @@ import './index.less';
 import { actions } from "mirrorx";
 import ClassfiyRule from "../ClassfiyRule";
 import {Menu, Dropdown, Avatar,Divider, Tag  } from 'uiw';
-import {Select, Collapse,Breadcrumb, FormControl,Modal, Label, FormGroup, Button, Upload, Icon } from 'tinper-bee';
+import { Collapse,Breadcrumb, FormControl,Modal, Label, FormGroup, Button, Upload, Icon } from 'tinper-bee';
 import CreateDir from "../CreateDir";
 import AddLabel from "../AddLabel";
+import Select from "../Select";
+
 export default class Doc_dir extends Component{
     constructor(props) {
         super(props);
@@ -38,6 +40,7 @@ export default class Doc_dir extends Component{
             </Button>
             </div>  
             <ClassfiyRule id="classfiyRule" dir={this.props.currentDir} sessionId ={this.props.sessionId}> 管理分类规则</ClassfiyRule>
+            <Select></Select>
         </div>)
       } 
 }

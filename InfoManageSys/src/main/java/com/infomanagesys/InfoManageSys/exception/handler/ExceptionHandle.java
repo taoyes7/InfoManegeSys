@@ -1,5 +1,6 @@
 package com.infomanagesys.InfoManageSys.exception.handler;
 
+import com.infomanagesys.InfoManageSys.exception.ExistException;
 import com.infomanagesys.InfoManageSys.exception.FileExistException;
 import com.infomanagesys.InfoManageSys.exception.TestException;
 import com.infomanagesys.InfoManageSys.exception.UserCheckException;
@@ -13,16 +14,20 @@ import javax.servlet.http.HttpServletRequest;
 @ResponseBody
 public class ExceptionHandle {
 
-@ExceptionHandler(TestException.class)
+    @ExceptionHandler(TestException.class)
     public String dealException(){
         return "Exception handle success";
     }
-@ExceptionHandler(UserCheckException.class)
+    @ExceptionHandler(UserCheckException.class)
     public Object dealUserCheckException(HttpServletRequest request, UserCheckException e){
         return e;
     }
     @ExceptionHandler(FileExistException.class)
     public Object dealFileExistException(HttpServletRequest request,FileExistException e){
+        return e;
+    }
+    @ExceptionHandler(ExistException.class)
+    public Object dealExistException(HttpServletRequest request,ExistException e){
         return e;
     }
 }

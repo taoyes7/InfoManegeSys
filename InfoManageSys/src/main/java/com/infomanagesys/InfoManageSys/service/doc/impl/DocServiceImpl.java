@@ -9,10 +9,12 @@ import com.infomanagesys.InfoManageSys.dataobject.entity.doc.DocFileInfo;
 import com.infomanagesys.InfoManageSys.dataobject.entity.label.DirClassifyRules;
 import com.infomanagesys.InfoManageSys.dataobject.entity.label.Label;
 import com.infomanagesys.InfoManageSys.dataobject.entity.label.LabelGroup;
+import com.infomanagesys.InfoManageSys.dataobject.entity.label.LabelType;
 import com.infomanagesys.InfoManageSys.dataobject.enums.DocTypeEnum;
 import com.infomanagesys.InfoManageSys.dataobject.enums.RuleGroupEnum;
 import com.infomanagesys.InfoManageSys.dataobject.enums.TempTypeEnum;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.*;
+import com.infomanagesys.InfoManageSys.exception.ExistException;
 import com.infomanagesys.InfoManageSys.exception.FileExistException;
 import com.infomanagesys.InfoManageSys.service.doc.itf.IDocService;
 import com.infomanagesys.InfoManageSys.util.Pid;
@@ -41,6 +43,7 @@ public class DocServiceImpl implements IDocService
     private final DirClassifyRulesRepository dirClassifyRulesRepository;
     private final LabelRepository labelRepository;
     private final LabelGroupRepository labelGroupRepository;
+    private final LabelTypeRepository labelTypeRepository;
 
     @Autowired
     public DocServiceImpl(final DocFileRepository docFileRepository,
@@ -50,7 +53,8 @@ public class DocServiceImpl implements IDocService
                           final DocFileInfoRepository docFileInfoRepository,
                           final DirClassifyRulesRepository dirClassifyRulesRepository,
                           final LabelRepository labelRepository,
-                          final LabelGroupRepository labelGroupRepository){
+                          final LabelGroupRepository labelGroupRepository,
+                          final LabelTypeRepository labelTypeRepository){
         this.docFileRepository=docFileRepository;
         this.docDirRepository=docDirRepository;
         this.tempTableRepository=tempTableRepository;
@@ -59,6 +63,7 @@ public class DocServiceImpl implements IDocService
         this.dirClassifyRulesRepository = dirClassifyRulesRepository;
         this.labelRepository=labelRepository;
         this.labelGroupRepository = labelGroupRepository;
+        this.labelTypeRepository = labelTypeRepository;
     }
     @Override
     public RuleAndFileResponseDTO uploadFile(String userId, MultipartFile file){
@@ -594,7 +599,7 @@ public class DocServiceImpl implements IDocService
                 boolean isNo=true;
                 boolean haveGreen=false;
                 for(LabelResponseDTO labelResponseDTO : labelGroupResponseDTO.getLabels()){
-                    if(labelResponseDTO.getColor()=="red"){
+                    if(labelResponseDTO.getColor().equals("red")){
                         isAnd=false;
                         if(fileResponseDTO.getLabels()!=null){
                             for(LabelResponseDTO fileLabel:fileResponseDTO.getLabels()){
@@ -607,7 +612,7 @@ public class DocServiceImpl implements IDocService
                         if(!isAnd){
                             break;
                         }
-                    }else if(labelResponseDTO.getColor()=="green"){
+                    }else if(labelResponseDTO.getColor().equals("green")){
                         haveGreen=true;
                         if(fileResponseDTO.getLabels()!=null) {
                             for (LabelResponseDTO fileLabel : fileResponseDTO.getLabels()) {
@@ -617,7 +622,7 @@ public class DocServiceImpl implements IDocService
                                 }
                             }
                         }
-                    }else if(labelResponseDTO.getColor()=="#52575c"){
+                    }else if(labelResponseDTO.getColor().equals("#52575c")){
                         if(fileResponseDTO.getLabels()!=null) {
                             for (LabelResponseDTO fileLabel : fileResponseDTO.getLabels()) {
                                 if (fileLabel.getContent().equals(labelResponseDTO.getContent())) {
@@ -657,6 +662,7 @@ public class DocServiceImpl implements IDocService
         return classfiyedFileResponseDTO;
 
     }
+    @Override
     public LabelGroupResponseDTO getLabelGroupByFile(String dirId, FileResponseDTO file){
         ClassfiyRuleResponseDTO classfiyRuleResponseDTO = getClassfiyRule(dirId);
         for(LabelGroupResponseDTO labelGroupResponseDTO:classfiyRuleResponseDTO.getLabelGroups()){
@@ -669,7 +675,7 @@ public class DocServiceImpl implements IDocService
                 boolean isNo=true;
                 boolean haveGreen=false;
                 for(LabelResponseDTO labelResponseDTO : labelGroupResponseDTO.getLabels()){
-                    if(labelResponseDTO.getColor()=="red"){
+                    if(labelResponseDTO.getColor().equals("red")){
                         isAnd=false;
                         if(file.getLabels()!=null){
                             for(LabelResponseDTO fileLabel:file.getLabels()){
@@ -682,7 +688,7 @@ public class DocServiceImpl implements IDocService
                         if(!isAnd){
                             break;
                         }
-                    }else if(labelResponseDTO.getColor()=="green"){
+                    }else if(labelResponseDTO.getColor().equals("green")){
                         haveGreen=true;
                         if(file.getLabels()!=null) {
                             for (LabelResponseDTO fileLabel : file.getLabels()) {
@@ -692,7 +698,7 @@ public class DocServiceImpl implements IDocService
                                 }
                             }
                         }
-                    }else if(labelResponseDTO.getColor()=="#52575c"){
+                    }else if(labelResponseDTO.getColor().equals("#52575c")){
                         if(file.getLabels()!=null) {
                             for (LabelResponseDTO fileLabel : file.getLabels()) {
                                 if (fileLabel.getContent().equals(labelResponseDTO.getContent())) {
@@ -715,6 +721,179 @@ public class DocServiceImpl implements IDocService
         LabelGroupResponseDTO labelGroup = new LabelGroupResponseDTO();
         labelGroup.setName("其他");
         return labelGroup;
+    }
+    @Override
+    public LabelGroupResponseDTO getCurDirLabelAndType(String dirId){
+        LabelGroupResponseDTO labelGroupResponseDTO = new LabelGroupResponseDTO();
+        ArrayList<String> fileTypes = new ArrayList<String>();
+        ArrayList<LabelResponseDTO> labels= new ArrayList<LabelResponseDTO>();
+        ArrayList<String> _labels = new ArrayList<String>();
+
+        ArrayList<FileResponseDTO> fileResponseDTOS = getChildFile(dirId);
+        for(FileResponseDTO fileResponseDTO : fileResponseDTOS){
+            if(!fileTypes.contains(fileResponseDTO.getType())){
+                fileTypes.add(fileResponseDTO.getType());
+            }
+            if(fileResponseDTO.getLabels()!=null){
+                for(LabelResponseDTO labelResponseDTO: fileResponseDTO.getLabels()){
+                    if(!_labels.contains(labelResponseDTO.getPid())){
+                        labels.add(labelResponseDTO);
+                        _labels.add(labelResponseDTO.getPid());
+                    }
+                }
+            }
+        }
+        labelGroupResponseDTO.setFileTypes(fileTypes);
+        labelGroupResponseDTO.setLabels(labels);
+        return labelGroupResponseDTO;
+    }
+    @Override
+    public RulesAndFileLIstResponseDTO selectFiles(String dirId,JSONArray labels,JSONArray fileTypes){
+        ArrayList<FileResponseDTO> fileResponseDTOS = getChildFile(dirId);
+        LabelGroupResponseDTO labelGroup = new LabelGroupResponseDTO();
+        ArrayList<FileResponseDTO> fileResponseDTOArrayList = new ArrayList<FileResponseDTO>();
+        try {
+            for (FileResponseDTO fileResponseDTO : fileResponseDTOS) {
+                boolean istType = true;
+                if (fileTypes.length() > 0) {
+                    istType = false;
+                    for (int i = 0; i < fileTypes.length(); i++) {
+//                        JSONObject fileType = new JSONObject(fileTypes.getString(i));
+                        if(fileTypes.getString(i).equals(fileResponseDTO.getType())){
+                            istType = true;
+                        }
+                    }
+                }
+                boolean isAnd=true;
+                boolean isOr=false;
+                boolean isNo=true;
+                boolean haveGreen=false;
+                if(labels.length()>0){
+                    for(int i = 0 ;i<labels.length();i++){
+                        JSONObject label = new JSONObject( labels.getString(i));
+                        if(label.getString("color").equals("red")){
+                            isAnd=false;
+                            if(fileResponseDTO.getLabels()!=null){
+                                for(LabelResponseDTO fileLabel:fileResponseDTO.getLabels()){
+                                    if(fileLabel.getContent().equals(label.getString("content"))){
+                                        isAnd=true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if(!isAnd){
+                                break;
+                            }
+                        }else if(label.getString("color").equals("green")){
+                            haveGreen=true;
+                            if(fileResponseDTO.getLabels()!=null) {
+                                for (LabelResponseDTO fileLabel : fileResponseDTO.getLabels()) {
+                                    if (fileLabel.getContent().equals(label.getString("content"))) {
+                                        isOr = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }else if(label.getString("color").equals("#52575c")){
+                            if(fileResponseDTO.getLabels()!=null) {
+                                for (LabelResponseDTO fileLabel : fileResponseDTO.getLabels()) {
+                                    if (fileLabel.getContent().equals(label.getString("content"))) {
+                                        isNo = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            if(!isNo){
+                                break;
+                            }
+                        }
+                    }
+                    if(isAnd&&isNo&&istType){
+                        if((!haveGreen)||(haveGreen&&isOr)){
+                            fileResponseDTOArrayList.add(fileResponseDTO);
+                        }
+                    }
+                }
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        labelGroup.setFileTypes(new ArrayList<>());
+        labelGroup.setLabels(new ArrayList<>());
+        labelGroup.setName("筛选结果：");
+        RulesAndFileLIstResponseDTO rulesAndFileLIstResponseDTO = new RulesAndFileLIstResponseDTO();
+        rulesAndFileLIstResponseDTO.setFileResponseDTOArrayList(fileResponseDTOArrayList);
+        rulesAndFileLIstResponseDTO.setLabelGroup(labelGroup);
+        return rulesAndFileLIstResponseDTO;
+
+    }
+    @Override
+    public LabelTypeResponseDTO CreateLabelType(String userId,String name, String description){
+        ArrayList<LabelType> labelTypes = labelTypeRepository.findByUser(userId);
+        for(LabelType labelType:labelTypes){
+            if(labelType.getName().equals(name)){
+                throw new ExistException("标签类型已存在");
+            }
+        }
+        LabelType labelType = labelTypeRepository.save(LabelType.labelTypeBuilder().withPid(Pid.getPid())
+                .withUser(userId)
+                .withName(name)
+                .withDescription(description)
+                .build());
+        return parseLabelTypeToDTO(labelType);
+    }
+    @Override
+    public LabelTypeDTOS GetAllLabelTypes(String userId){
+        ArrayList<LabelType> labelTypes = labelTypeRepository.findByUser(userId);
+        LabelTypeDTOS labelTypeDTOS = new LabelTypeDTOS();
+        labelTypeDTOS.setLabelTypes(parseLabelTypeListToDTO(labelTypes));
+        return labelTypeDTOS;
+    }
+    @Override
+    public LabelGroupDTOS getAllLabelsByGroup(String userId){
+        ArrayList<LabelType> labelTypes = labelTypeRepository.findByUser(userId);
+        ArrayList<LabelResponseDTO> labelResponseDTOS = getAllLabels(userId).getLabelResponseDTOArrayList();
+        LabelGroupDTOS labelGroupDTOS = new LabelGroupDTOS();
+        ArrayList<LabelGroupDTO> labelGroups = new ArrayList<LabelGroupDTO>();
+        for(LabelType labelType:labelTypes){
+            LabelGroupDTO labelGroupDTO = new LabelGroupDTO();
+            ArrayList<LabelResponseDTO> labels = new ArrayList<LabelResponseDTO>();
+            for(LabelResponseDTO label :labelResponseDTOS){
+                try {
+                    JSONObject type = new JSONObject(label.getType());
+                    if(labelType.getName().equals(type.getString("name"))){
+                        {
+                            labels.add(label);
+                        }
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+            }
+            for(LabelResponseDTO label:labels){
+                labelResponseDTOS.remove(label);
+            }
+            labelGroupDTO.setLabels(labels);
+            labelGroupDTO.setLabelType(parseLabelTypeToDTO(labelType));
+            labelGroups.add(labelGroupDTO);
+        }
+        labelGroupDTOS.setLabelGroups(labelGroups);
+        return labelGroupDTOS;
+    }
+    private  LabelTypeResponseDTO parseLabelTypeToDTO(LabelType labelType){
+        LabelTypeResponseDTO labelTypeResponseDTO = new LabelTypeResponseDTO();
+        labelTypeResponseDTO.setPid(labelType.getPid());
+        labelTypeResponseDTO.setName(labelType.getName());
+        labelTypeResponseDTO.setDescription(labelType.getDescription());
+        return labelTypeResponseDTO;
+    }
+    private ArrayList<LabelTypeResponseDTO> parseLabelTypeListToDTO(ArrayList<LabelType> labelTypes){
+        ArrayList<LabelTypeResponseDTO> labelTypeResponseDTOS = new ArrayList<LabelTypeResponseDTO>();
+        for(LabelType labelType:labelTypes){
+            labelTypeResponseDTOS.add(parseLabelTypeToDTO(labelType));
+        }
+        return labelTypeResponseDTOS;
     }
     private FileResponseDTO parseDocDirToDTO(DocDir docDir){
         FileResponseDTO fileResponseDTO = new FileResponseDTO();

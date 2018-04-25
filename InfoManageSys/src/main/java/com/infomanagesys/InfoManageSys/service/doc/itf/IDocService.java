@@ -29,4 +29,9 @@ public interface IDocService {
     public ResponseDTO exchangeLevel(String curPid,String nextPid,String classfiyRuleId);
     public ClassfiyedFileResponseDTO getClassfiyedFile(String dirId);
     public LabelGroupResponseDTO getLabelGroupByFile(String dirId, FileResponseDTO file);
+    public LabelGroupResponseDTO getCurDirLabelAndType(String dirId);
+    public RulesAndFileLIstResponseDTO selectFiles(String dirId,JSONArray labels,JSONArray fileTypes);
+    public LabelTypeResponseDTO CreateLabelType(String userId,String name, String description);
+    public LabelTypeDTOS GetAllLabelTypes(String userId);
+    public LabelGroupDTOS getAllLabelsByGroup(String userId);
 }
