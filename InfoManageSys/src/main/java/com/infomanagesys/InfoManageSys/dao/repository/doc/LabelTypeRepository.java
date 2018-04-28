@@ -7,4 +7,6 @@ import java.util.ArrayList;
 
 public interface LabelTypeRepository extends JpaRepository<LabelType, Long> {
     ArrayList<LabelType> findByUser(String user);
+    LabelType findFirstByUserAndName(String user,String name);
+    void deleteByPid(String pid);
 }

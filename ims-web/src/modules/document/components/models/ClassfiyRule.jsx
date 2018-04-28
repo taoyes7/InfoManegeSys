@@ -9,9 +9,7 @@ export default {
         Model_classifyRule:false,
         createClassfiyRule:false,
         showModal_change:false,
-        old_labels:[
-            {"pid":"null"}
-        ],
+        old_labels:[ ],
         temp_tags:{
             and:[],
             or:[],
@@ -129,15 +127,15 @@ export default {
     },
     effects : {
         async openModalAndLoadOldLabels(args){
-            let{data,data:{success}} = await api.getAllLabels(args);
-            if(success){
-                await actions.classfiyRule.loadFileRules(args);
-                let {labelResponseDTOArrayList:old_labels} = data;
-                actions.classfiyRule.save({old_labels});
+            // let{data,data:{success}} = await api.getAllLabels(args);
+            // if(success){
+                // await actions.classfiyRule.loadFileRules(args);
+                // let {labelResponseDTOArrayList:old_labels} = data;
+                // actions.classfiyRule.save({old_labels});
                 actions.classfiyRule.openModal();
-            }else{
-                actions.classfiyRule.openModal();
-            }
+            // }else{
+            //     actions.classfiyRule.openModal();
+            // }
         },
         async loadFileRules(args){
             let {data:classfiyRule,data:{success}} = await api.getFileRules(args);
@@ -250,6 +248,7 @@ export default {
                     "dirId":args.dir.pid
                 }
                 await actions.classfiyRule.loadFileRules(_args);
+                actions.document.refreshfile(_args);
                 actions.document.save({currentDir});
                 actions.classfiyRule.clear();
             }
@@ -258,6 +257,7 @@ export default {
             let { data:{success}} = await api.deleteRules(args);
             if(success){
                 await actions.classfiyRule.loadFileRules(args);
+                actions.document.refreshfile(args);
             }
         },
         async deleteLabel(args){
@@ -339,6 +339,7 @@ export default {
             let {data:{success}} = await api.exchangLevel(_args);
             if(success){
                 actions.classfiyRule.save(labelGroups);
+                actions.document.refreshfile(args);
             }
 
             

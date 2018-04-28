@@ -4,7 +4,8 @@ export default {
     name : "login",
     initialState : {
        sessionId:"6d796804171a4a88af1d5f1b6adcb54d",
-       state:true
+       state:true,
+       severPath:"http://localhost:8085",
     },
     reducers : {
         save(state, data) {

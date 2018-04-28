@@ -67,13 +67,11 @@ export default {
                 ...temp_labels
             }
         },
-        openModelAndOldLabel(state,data){
+        openMode(state){
             let showModel =true;
-            let old_labels = data;
             return {
                 ...state,
-                ...{showModel},
-                ...{old_labels}
+                ...{showModel}
             }
         
         },
@@ -153,13 +151,13 @@ export default {
             }
         },
         async openModalAndloadOldLabels(args){
-            let{data,data:{success}} = await api.getAllLabels(args);
-            if(success){
-                let {labelResponseDTOArrayList:labels} = data;
-                actions.addLabel.openModelAndOldLabel(labels);
-            }else{
-                actions.addLabel.openModelAndOldLabel([]);
-            }
+            // let{data,data:{success}} = await api.getAllLabels(args);
+            // if(success){
+                // let {labelResponseDTOArrayList:labels} = data;
+                actions.addLabel.openMode();
+            // }else{
+            //     actions.addLabel.openModelAndOldLabel([]);
+            // }
         },
         async closeModalAndSaveLabelsForDir(args){
             let {data:currentDir, data:{success}} = await api.addLabel(args);

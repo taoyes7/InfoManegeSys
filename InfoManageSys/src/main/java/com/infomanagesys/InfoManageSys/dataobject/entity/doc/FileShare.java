@@ -16,11 +16,9 @@ public class FileShare implements Serializable {
     @Column
     private String pid;
     @Column
-    private int type;
+    private String type;
     @Column
     private Timestamp createDate;
-    @Column
-    private Long time;
     @Column(columnDefinition="TEXT")
     private String content;
     @Column
@@ -46,11 +44,11 @@ public class FileShare implements Serializable {
         this.pid = pid;
     }
 
-    public int getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(int type) {
+    public void setType(String type) {
         this.type = type;
     }
 
@@ -60,14 +58,6 @@ public class FileShare implements Serializable {
 
     public void setCreateDate(Timestamp createDate) {
         this.createDate = createDate;
-    }
-
-    public Long getTime() {
-        return time;
-    }
-
-    public void setTime(Long time) {
-        this.time = time;
     }
 
     public String getContent() {
@@ -109,7 +99,6 @@ public class FileShare implements Serializable {
                 ", pid='" + pid + '\'' +
                 ", type=" + type +
                 ", createDate=" + createDate +
-                ", time=" + time +
                 ", content='" + content + '\'' +
                 ", passworld='" + passworld + '\'' +
                 ", status='" + status + '\'' +
@@ -123,9 +112,8 @@ public class FileShare implements Serializable {
     public static class FileShareBuilder {
         private Long id;
         private String pid;
-        private int type;
+        private String type;
         private Timestamp createDate;
-        private Long time;
         private String content;
         private String passworld;
         private String status;
@@ -138,16 +126,12 @@ public class FileShare implements Serializable {
             this.pid = pid;
             return this;
         }
-        public FileShareBuilder withType(int type) {
+        public FileShareBuilder withType(String type) {
             this.type = type;
             return this;
         }
         public FileShareBuilder withCreateDate(Timestamp createDate) {
             this.createDate = createDate;
-            return this;
-        }
-        public FileShareBuilder withtTime(Long time) {
-            this.time = time;
             return this;
         }
         public FileShareBuilder withContent(String content) {
@@ -174,7 +158,6 @@ public class FileShare implements Serializable {
             fileShare.setPid(this.pid);
             fileShare.setType(this.type);
 //            fileShare.setCreateDate(currentDate);
-            fileShare.setTime(this.time);
             fileShare.setContent(this.content);
             fileShare.setPassworld(this.passworld);
             fileShare.setStatus(this.status);

@@ -7,7 +7,7 @@ import java.io.Serializable;
 public class LabelResponseDTO extends ResponseDTO implements Serializable {
     private String content;
     private String discription;
-    private String type;
+    private LabelTypeResponseDTO type;
     private int level;
     private String color;
     private double score;
@@ -61,11 +61,11 @@ public class LabelResponseDTO extends ResponseDTO implements Serializable {
         this.discription = discription;
     }
 
-    public String getType() {
+    public LabelTypeResponseDTO getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(LabelTypeResponseDTO type) {
         this.type = type;
     }
 

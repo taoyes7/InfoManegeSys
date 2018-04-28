@@ -12,6 +12,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 @RestController
@@ -86,9 +90,48 @@ public class DocController {
         }
 
     }
+    @RequestMapping(value="/add/file/label",method = RequestMethod.POST)
+    public ResponseDTO addLabelToFile(@RequestParam("file") String file,
+                                   @RequestParam("label") String label,
+                                    @RequestParam("sessionId") String sessionId
+    ){
+        if (userService.userCheck(sessionId)) {
+            try{
+                JSONObject _file = new JSONObject(file);
+                JSONObject _label= new JSONObject(label);
+                return docService.addLabelToFile(_file,_label);
+            }catch (Exception e){
+                e.printStackTrace();
+                throw new UserCheckException("参数解析出错");
+            }
+
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+
+    }
+    @RequestMapping(value="/delete/file/label",method = RequestMethod.POST)
+    public ResponseDTO deleteLabelToFile(@RequestParam("file") String file,
+                                      @RequestParam("labelId") String labelId,
+                                      @RequestParam("sessionId") String sessionId
+    ){
+        if (userService.userCheck(sessionId)) {
+            try{
+                JSONObject _file = new JSONObject(file);
+                return docService.deleteLabelToFile(_file,labelId);
+            }catch (Exception e){
+                e.printStackTrace();
+                throw new UserCheckException("参数解析出错");
+            }
+
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+
+    }
     @RequestMapping(value="/add/label",method = RequestMethod.POST)
     public FileResponseDTO addLabel(@RequestParam("file") String file,
-                                   @RequestParam("label") String label,
+                                    @RequestParam("label") String label,
                                     @RequestParam("sessionId") String sessionId
     ){
         if (userService.userCheck(sessionId)) {
@@ -281,6 +324,101 @@ public class DocController {
             throw new UserCheckException("用户校验失败");
         }
     }
+    @RequestMapping(value="/change/labeltype",method = RequestMethod.POST)
+    public ResponseDTO ChangeLabelTypes(@RequestParam("sessionId") String sessionId,@RequestParam("type") String type,@RequestParam("label") String label){
+        if (userService.userCheck(sessionId)) {
+            try {
+                JSONObject _type = new JSONObject(type);
+                JSONObject _label = new JSONObject(label);
+                return docService.ChangeLabelTypes(_type,_label);
+            }catch (Exception e){
+                throw new UserCheckException("参数解析失败");
+            }
+
+
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/delete/label/label",method = RequestMethod.POST)
+    public ResponseDTO DeleteLabelFromLabel(@RequestParam("sessionId") String sessionId,@RequestParam("label") String label){
+        if (userService.userCheck(sessionId)) {
+            try {
+                JSONObject _label = new JSONObject(label);
+                return docService.DeleteLabelFromLabel(userService.getUserId(sessionId),_label);
+            }catch (Exception e){
+                throw new UserCheckException("参数解析失败");
+            }
+
+
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/new/label",method = RequestMethod.POST)
+    public LabelResponseDTO newLabel(@RequestParam("sessionId") String sessionId,@RequestParam("name") String name,@RequestParam("describe") String describe,@RequestParam("labelType") String labelType){
+        if (userService.userCheck(sessionId)) {
+            JSONObject _labelType;
+            try {
+                _labelType = new JSONObject(labelType);
+            }catch (Exception e){
+                throw new UserCheckException("参数解析失败");
+            }
+            return docService.newLabel(userService.getUserId(sessionId),name,describe,_labelType);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value="/delete/labeltype",method = RequestMethod.POST)
+        public LabelGroupDTO deleteLabelType(@RequestParam("sessionId") String sessionId,@RequestParam("labelTypeId") String labelTypeId){
+        if (userService.userCheck(sessionId)) {
+
+            return docService.deleteLabelType(userService.getUserId(sessionId),labelTypeId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+
+    @RequestMapping(value="/download/file", method = RequestMethod.GET)
+    public void DownLoadFile(@RequestParam("sessionId") String sessionId,@RequestParam("fileId") String fileId,HttpServletResponse res){
+        if (userService.userCheck(sessionId)) {
+             docService.DownLoadFile(fileId,res);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+
+    }
+    @RequestMapping(value="/share/download/file", method = RequestMethod.GET)
+    public void DownLoadShareFile(@RequestParam("fileId") String fileId,HttpServletResponse res){
+            docService.DownLoadFile(fileId,res);
+    }
+    @RequestMapping(value="/delete/file", method = RequestMethod.POST)
+    public ResponseDTO DeleteFile(@RequestParam("sessionId") String sessionId,@RequestParam("fileId") String fileId){
+        if (userService.userCheck(sessionId)) {
+           return  docService.DeleteFile(fileId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+
+    }
+    @RequestMapping(value="/share/file", method = RequestMethod.POST)
+    public ShareDTO ShareFile(@RequestParam("sessionId") String sessionId,@RequestParam("fileId") String fileId,@RequestParam("isPrivate") String isPrivate,@RequestParam("shareTypeCode") String shareTypeCode){
+        if (userService.userCheck(sessionId)) {
+            return  docService.ShareFile(fileId,isPrivate,shareTypeCode);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+
+    }
+    @RequestMapping(value="/check/share", method = RequestMethod.POST)
+    public CheckShareDTO GetShareFile(@RequestParam("shareId") String shareId){
+            return  docService.GetShareFile(shareId);
+    }
+    @RequestMapping(value="/get/share/file", method = RequestMethod.POST)
+    public CheckShareDTO GetShareFileByPassword(@RequestParam("shareId") String shareId,@RequestParam("password") String password){
+        return  docService.GetShareFileByPassword(shareId,password);
+    }
+
 
 
 }

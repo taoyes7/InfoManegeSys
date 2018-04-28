@@ -1,9 +1,13 @@
 package com.infomanagesys.InfoManageSys.service.doc.impl;
 
 import com.baidu.aip.nlp.AipNlp;
+import com.infomanagesys.InfoManageSys.dao.repository.doc.LabelGroupRepository;
 import com.infomanagesys.InfoManageSys.dao.repository.doc.LabelRepository;
+import com.infomanagesys.InfoManageSys.dao.repository.doc.LabelTypeRepository;
 import com.infomanagesys.InfoManageSys.dataobject.entity.doc.DocFile;
 import com.infomanagesys.InfoManageSys.dataobject.entity.label.Label;
+import com.infomanagesys.InfoManageSys.dataobject.entity.label.LabelGroup;
+import com.infomanagesys.InfoManageSys.dataobject.entity.label.LabelType;
 import com.infomanagesys.InfoManageSys.dataobject.enums.ApiKeyEnum;
 import com.infomanagesys.InfoManageSys.dataobject.enums.LabelEnum;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LabelResponseDTO;
@@ -25,9 +29,12 @@ import java.util.HashMap;
 @Service
 public class NLPServiceImpl implements INLPService {
     private final LabelRepository labelRepository;
+    private final LabelTypeRepository labelTypeRepository;
     @Autowired
-    public NLPServiceImpl(final LabelRepository labelRepository){
+    public NLPServiceImpl(final LabelRepository labelRepository,
+                          final LabelTypeRepository labelTypeRepository){
         this.labelRepository = labelRepository;
+        this.labelTypeRepository = labelTypeRepository;
     }
     @Override
     public ArrayList<LabelResponseDTO> GetLabelsByWorldFile(DocFile docFile,String userId) {
@@ -69,12 +76,17 @@ public class NLPServiceImpl implements INLPService {
                 JSONArray items = res.getJSONArray("items");
                 System.out.print(res);
                 System.out.print(items);
+                LabelType labelType = labelTypeRepository.findFirstByUserAndName(userId,"未分组标签");
+                JSONObject type = new JSONObject();
+                type.put("name",labelType.getName());
+                type.put("pid",labelType.getPid());
                 for (int i=0;i<items.length();i++) {
                     JSONObject item = items.getJSONObject(i);
-                    Label label = labelRepository.findFirstByContent(item.getString("tag"));
+                    Label label = labelRepository.findFirstByUserAndContent(userId,item.getString("tag"));
+
                     if(label==null){
                         label = Label.labelBuilder()
-                                .withType("other")
+                                .withType(type.toString())
                                 .withPid(Pid.getPid())
                                 .withContent(item.getString("tag"))
                                 .withUser(userId)

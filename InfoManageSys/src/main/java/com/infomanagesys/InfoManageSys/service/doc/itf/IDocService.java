@@ -1,10 +1,13 @@
 package com.infomanagesys.InfoManageSys.service.doc.itf;
 
+import com.infomanagesys.InfoManageSys.dataobject.entity.doc.FileShare;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 public interface IDocService {
@@ -34,4 +37,16 @@ public interface IDocService {
     public LabelTypeResponseDTO CreateLabelType(String userId,String name, String description);
     public LabelTypeDTOS GetAllLabelTypes(String userId);
     public LabelGroupDTOS getAllLabelsByGroup(String userId);
+    public ResponseDTO ChangeLabelTypes(JSONObject type,JSONObject label);
+    public ResponseDTO DeleteLabelFromLabel(String userId, JSONObject label);
+    public LabelResponseDTO newLabel(String userId,String name,String describe,JSONObject labelType);
+    public LabelGroupDTO deleteLabelType(String userId,String labelTypeId);
+    public ResponseDTO addLabelToFile(JSONObject file, JSONObject label);
+    public ResponseDTO deleteLabelToFile(JSONObject file, String labelId);
+    public ResponseDTO DownLoadFile(String fileId, HttpServletResponse res);
+    public ResponseDTO DeleteFile(String fileId);
+    public ShareDTO ShareFile(String fileId,String isPrivate,String shareTypeCode);
+    public CheckShareDTO GetShareFile(String shareId);
+    public CheckShareDTO GetShareFileByPassword(String shareId,String password);
+    public boolean  checkShareOutOfTime(FileShare fileShare);
 }

@@ -28,98 +28,97 @@ const AddLabel = (props) => {
         actions.addLabel.addAndCheckLabel(args);
     }
         let key_tags=0;
-        let key_templabel=0;
-        let key_oldLabel=0;
-        let key_label_list_type=0;
-        let key_label_list_content=0; //
-        let key_label_list_color=0;
+
+        let key_label_type=0;
+        let key_label_label=0;
+        let key_label_color=0;
 
          const menu_addLabel = (
                 <Menu 
             defaultActive="1"
             defaultOpened={['5']}
             style={{width:240}}
-            // onClose={() => actions.addLabel.onClose()}
-            // onSelect={() => actions.addLabel.onSelect()}
           >
-            <Menu.Item index="1"><Icon type="date" />标签分类</Menu.Item>
-            <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>统一标签类型</span></span>}>
-              {
-                  props.state.old_labels.map(function(label){
-                      if(label.pid!="null"){
-                        key_label_list_content++;
-                        key_label_list_color=0;
-                          return(
-                            <Menu.SubMenu index={"2-"+key_label_list_content} key={key_oldLabel} title={<span><Icon type="menu" /><span>
-                                <Tag className="tag"  color="#52575c">{label.content}</Tag>
-                                </span></span>}>
-                                {
-                                props.state.tags.map(function(tag){
-                                    key_label_list_color++;
-                                    if(tag!=null){
-                                        return(
-                                            <Menu.Item index={"2-"+key_label_list_content+"-"+key_label_list_color}>
-                                            <Tag className="tag" key={key_label_list_color} color={tag.color}
-                                            onClick={ ()=>
-                                                {
-                                                    let isAdd=false;
-                                                    let isHave=false;
-                                                    props.state.temp_labels.map(function(_label){
-                                                        if(label.content==_label.content){
-                                                            isAdd=true;
-                                                        }
-                                                    });
-                                                    props.currentDir.labels.map(function(_label){
-                                                        if(_label!=null){
-                                                            if(_label.content==props.state.newLabel_content){
-                                                                isHave=true;
-                                                            }
-                                                        }
-                                                        
-                                                    });
-                                                    if(!(isAdd&&isHave)){
-                                                    let _label={
-                                                                "pid":label.pid,
-                                                                "content":label.content,
-                                                                "description":label.description,
-                                                                "color":tag.color,
-                                                                "level":tag.level,
-                                                                "score":tag.score,
-                                                                "isAdd":true
-                                                            }
-                                                    actions.addLabel.addLabelToTempLabels(_label);
-                                                    let args={
-                                                        "label":_label,
-                                                        "temp_labels":props.state.temp_labels,
-                                                        "temp_tags":props.state.temp_tags
+
+            {
+                props.labelGroups.map(function(labelGroup){
+                    key_label_type++;
+                    key_label_label=0;
+                    return (
+                    <Menu.SubMenu index={key_label_type} key={key_label_type} title={<span><Icon type="star-on" />{labelGroup.labelType.name}<span></span></span>}>
+                    {
+                        labelGroup.labels.map(function(label){
+                            key_label_label++;
+                            key_label_color=0;
+                        return(
+                            <Menu.SubMenu  index={key_label_type+"-"+key_label_label} key={key_label_type+"-"+key_label_label} title={<span><Icon type="menu" /><span>
+                            {label.content}
+                            </span></span>}>
+                            {
+                            props.state.tags.map(function(tag){
+                                key_label_color++;
+                                if(tag!=null){
+                                    return(
+                                        <Menu.Item index={key_label_type+"-"+key_label_label+"-"+key_label_color} key={key_label_type+"-"+key_label_label+"-"+key_label_color}>
+                                        <Tag className="tag"  color={tag.color}
+                                        onClick={ ()=>
+                                            {
+                                                let isAdd=false;
+                                                let isHave=false;
+                                                props.state.temp_labels.map(function(_label){
+                                                    if(label.content==_label.content){
+                                                        isAdd=true;
                                                     }
-                                                    actions.addLabel.addTotemp_tags(args);
+                                                });
+                                                props.currentDir.labels.map(function(_label){
+                                                    if(_label!=null){
+                                                        if(_label.content==label.content){
+                                                            isHave=true;
+                                                        }
+                                                    }
+                                                    
+                                                });
+                                                if(!(isAdd||isHave)){
+                                                let _label={
+                                                            "pid":label.pid,
+                                                            "content":label.content,
+                                                            "description":label.description,
+                                                            "color":tag.color,
+                                                            "level":tag.level,
+                                                            "score":tag.score,
+                                                            "isAdd":true
+                                                        }
+                                                actions.addLabel.addLabelToTempLabels(_label);
+                                                let args={
+                                                    "label":_label,
+                                                    "temp_labels":props.state.temp_labels,
+                                                    "temp_tags":props.state.temp_tags
+                                                }
+                                                actions.addLabel.addTotemp_tags(args);
+                                                }else{
+                                                    if(isHave){
+                                                        alert("已拥有该标签");
                                                     }else{
-                                                        if(!isExist){
-                                                            alert("已拥有该标签");
-                                                        }else{
-                                                            alert("该标签已添加");
-                                                        }
+                                                        alert("该标签已添加");
                                                     }
-                        
-                                                } 
-                                            }
-                                            >{tag.color}</Tag>
-                                            </Menu.Item>
-                                        )
-                                    }
-                                })
-                            }
-                            </Menu.SubMenu>
-                          );
-                          key_oldLabel++;
-                      }
-                     
-                  })
-              }
-            </Menu.SubMenu>
-            <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>其他</span></span>}>
-            </Menu.SubMenu>
+                                                }
+                    
+                                            } 
+                                        }
+                                        >{tag.color}</Tag>
+                                        </Menu.Item>
+                                    )
+                                }
+                            })
+                        }
+                        </Menu.SubMenu> );
+                        })
+                    }
+                    </Menu.SubMenu>
+                    )
+                })
+            }
+
           </Menu>
               );
 
@@ -172,12 +171,13 @@ const AddLabel = (props) => {
                                 score:tag.score
                             }
                             if(tag!=null){
+                                key_tags++;
                                 return(
                                     <Tag className="tag" key={key_tags} color={tag.color}
                                     onClick={ ()=> actions.addLabel.setAddTagColor(args)}
                                     >{tag.color}</Tag>
                                 )
-                                key_tags++;
+                               
                             }
                         })
                     }
@@ -221,6 +221,7 @@ export default connect((state) => {//连接组件和状态管理
     return {
         state: state.addLabel,
         sessionId:state.login.sessionId,
-        currentDir:state.document.currentDir
+        currentDir:state.document.currentDir,
+        labelGroups:state.docMenu.labelGroups
     }
 })(AddLabel)

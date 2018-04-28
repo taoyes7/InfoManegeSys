@@ -6,16 +6,16 @@ import com.infomanagesys.InfoManageSys.dataobject.entity.TempTable;
 import com.infomanagesys.InfoManageSys.dataobject.entity.doc.DocDir;
 import com.infomanagesys.InfoManageSys.dataobject.entity.doc.DocFile;
 import com.infomanagesys.InfoManageSys.dataobject.entity.doc.DocFileInfo;
+import com.infomanagesys.InfoManageSys.dataobject.entity.doc.FileShare;
 import com.infomanagesys.InfoManageSys.dataobject.entity.label.DirClassifyRules;
 import com.infomanagesys.InfoManageSys.dataobject.entity.label.Label;
 import com.infomanagesys.InfoManageSys.dataobject.entity.label.LabelGroup;
 import com.infomanagesys.InfoManageSys.dataobject.entity.label.LabelType;
-import com.infomanagesys.InfoManageSys.dataobject.enums.DocTypeEnum;
-import com.infomanagesys.InfoManageSys.dataobject.enums.RuleGroupEnum;
-import com.infomanagesys.InfoManageSys.dataobject.enums.TempTypeEnum;
+import com.infomanagesys.InfoManageSys.dataobject.enums.*;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.*;
 import com.infomanagesys.InfoManageSys.exception.ExistException;
 import com.infomanagesys.InfoManageSys.exception.FileExistException;
+import com.infomanagesys.InfoManageSys.exception.UserCheckException;
 import com.infomanagesys.InfoManageSys.service.doc.itf.IDocService;
 import com.infomanagesys.InfoManageSys.util.Pid;
 import org.json.JSONArray;
@@ -24,11 +24,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.print.Doc;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.UUID;
 @Service
@@ -44,6 +44,7 @@ public class DocServiceImpl implements IDocService
     private final LabelRepository labelRepository;
     private final LabelGroupRepository labelGroupRepository;
     private final LabelTypeRepository labelTypeRepository;
+    private final FileShareRepository fileShareRepository;
 
     @Autowired
     public DocServiceImpl(final DocFileRepository docFileRepository,
@@ -54,7 +55,8 @@ public class DocServiceImpl implements IDocService
                           final DirClassifyRulesRepository dirClassifyRulesRepository,
                           final LabelRepository labelRepository,
                           final LabelGroupRepository labelGroupRepository,
-                          final LabelTypeRepository labelTypeRepository){
+                          final LabelTypeRepository labelTypeRepository,
+                          final FileShareRepository fileShareRepository){
         this.docFileRepository=docFileRepository;
         this.docDirRepository=docDirRepository;
         this.tempTableRepository=tempTableRepository;
@@ -64,6 +66,7 @@ public class DocServiceImpl implements IDocService
         this.labelRepository=labelRepository;
         this.labelGroupRepository = labelGroupRepository;
         this.labelTypeRepository = labelTypeRepository;
+        this.fileShareRepository = fileShareRepository;
     }
     @Override
     public RuleAndFileResponseDTO uploadFile(String userId, MultipartFile file){
@@ -81,8 +84,8 @@ public class DocServiceImpl implements IDocService
         System.out.println("uploadFileSuffix:" + uploadFileSuffix);
 
         TempTable tempTable=tempTableRepository.findFirstByTempUserAndTempType(userId, TempTypeEnum.TEMP_TYPE_CURRENTDIR.getKey());
-        DocDir parentDir=docDirRepository.findFirstByPid(tempTable.getTempValue());
-        DocFile docFile1=docFileRepository.findFirstByUserAndParentAndNameAndPostfix(userId,parentDir.getPid(),uploadFileName,DocTypeEnum.getEnumByName(uploadFileSuffix).getName());
+        DocDir parentDir=docDirRepository.findFirstByPidAndStatus(tempTable.getTempValue(),FileStatusEnum.STATUS_AVAILABLE.getState());
+        DocFile docFile1=docFileRepository.findFirstByUserAndParentAndNameAndPostfixAndStatus(userId,parentDir.getPid(),uploadFileName,DocTypeEnum.getEnumByName(uploadFileSuffix).getName(),FileStatusEnum.STATUS_AVAILABLE.getState());
         if(docFile1!=null){
             throw new FileExistException("已存在同名文件");
         }
@@ -130,7 +133,7 @@ public class DocServiceImpl implements IDocService
                 .withPathLocal("E:\\upLoadFiles")
                 .withClassify("false")
                 .withUser(userId)
-                .withStatus("0")
+                .withStatus(FileStatusEnum.STATUS_AVAILABLE.getState())
                 .withPostfix(DocTypeEnum.getEnumByName(uploadFileSuffix).getName())
                 .build();
         ArrayList<LabelResponseDTO> labelResponseDTOArrayList=nlpService.GetLabelsByWorldFile(docFile,userId);
@@ -153,7 +156,7 @@ public class DocServiceImpl implements IDocService
     @Override
     public FileResponseDTO createDir(String userId, String dirName){
         TempTable tempTable=tempTableRepository.findFirstByTempUserAndTempType(userId, TempTypeEnum.TEMP_TYPE_CURRENTDIR.getKey());
-        if(docDirRepository.findFirstByUserAndNameAndParent(userId,dirName,tempTable.getTempValue())!=null){
+        if(docDirRepository.findFirstByUserAndNameAndParentAndStatus(userId,dirName,tempTable.getTempValue(),FileStatusEnum.STATUS_AVAILABLE.getState())!=null){
             throw new FileExistException("已存在同名文件夹");
         }
         if(tempTable!=null){
@@ -163,7 +166,7 @@ public class DocServiceImpl implements IDocService
                             .withName("null")
                             .build()
             );
-            DocDir parentDir=docDirRepository.findFirstByPid(tempTable.getTempValue());
+            DocDir parentDir=docDirRepository.findFirstByPidAndStatus(tempTable.getTempValue(),FileStatusEnum.STATUS_AVAILABLE.getState());
             DocDir docDir = DocDir.docDirBuilder()
                     .withPid(Pid.getPid())
                     .withName(dirName)
@@ -221,7 +224,7 @@ public class DocServiceImpl implements IDocService
     @Override
     @Transactional
     public ClassfiyedFileResponseDTO openRootDir(String userId){
-        String dirId = docDirRepository.findFirstByLevelAndUser(0, userId).getPid();
+        String dirId = docDirRepository.findFirstByLevelAndUserAndStatus(0, userId,FileStatusEnum.STATUS_AVAILABLE.getState()).getPid();
         if(tempTableRepository.findFirstByTempUserAndTempType(userId, TempTypeEnum.TEMP_TYPE_CURRENTDIR.getKey())!=null)
         {
             tempTableRepository.updateValue(dirId,userId,TempTypeEnum.TEMP_TYPE_CURRENTDIR.getKey());
@@ -241,7 +244,7 @@ public class DocServiceImpl implements IDocService
     public FileResponseDTO getCurrentDir(String userId){
         TempTable tempTable=tempTableRepository.findFirstByTempUserAndTempType(userId, TempTypeEnum.TEMP_TYPE_CURRENTDIR.getKey());
         if(tempTable!=null){
-            return parseDocDirToDTO(docDirRepository.findFirstByPid(tempTable.getTempValue()));
+            return parseDocDirToDTO(docDirRepository.findFirstByPidAndStatus(tempTable.getTempValue(),FileStatusEnum.STATUS_AVAILABLE.getState()));
         }else {
             return null;
         }
@@ -250,13 +253,13 @@ public class DocServiceImpl implements IDocService
     @Override
     public ArrayList<FileResponseDTO> getChildFile(String parentId){
         ArrayList<FileResponseDTO> fileResponseDTOArrayList = new ArrayList<FileResponseDTO>();
-        fileResponseDTOArrayList =parseDocFileListToDTO(docFileRepository.findByParent(parentId));
-        fileResponseDTOArrayList.addAll(parseDocDirListToDTO(docDirRepository.findByParent(parentId)));
+        fileResponseDTOArrayList =parseDocFileListToDTO(docFileRepository.findByParentAndStatus(parentId,FileStatusEnum.STATUS_AVAILABLE.getState()));
+        fileResponseDTOArrayList.addAll(parseDocDirListToDTO(docDirRepository.findByParentAndStatus(parentId,FileStatusEnum.STATUS_AVAILABLE.getState())));
         return fileResponseDTOArrayList;
     }
     @Override
     public FileResponseDTO getParentFile(String childId){
-        return parseDocDirToDTO(docDirRepository.findFirstByPid(docDirRepository.findFirstByPid(childId).getParent()));
+        return parseDocDirToDTO(docDirRepository.findFirstByPidAndStatus(docDirRepository.findFirstByPidAndStatus(childId,FileStatusEnum.STATUS_AVAILABLE.getState()).getParent(),FileStatusEnum.STATUS_AVAILABLE.getState()));
     }
     @Override
     public AllLabelResponseDTO getAllLabels(String userId){
@@ -312,7 +315,7 @@ public class DocServiceImpl implements IDocService
             }
         }
         docDirRepository.updateLabelByUserAndPid(labelArray.toString(),userId,DirId);
-        return parseDocDirToDTO(docDirRepository.findFirstByPid(DirId));
+        return parseDocDirToDTO(docDirRepository.findFirstByPidAndStatus(DirId,FileStatusEnum.STATUS_AVAILABLE.getState()));
     }
     @Override
     public boolean checkLabel(String userId, String content){
@@ -334,7 +337,7 @@ public class DocServiceImpl implements IDocService
         String dirId="";
         try{
             dirId = dir.getString("pid");
-            DocDir docDir = docDirRepository.findFirstByPidAndUser(dirId,userId);
+            DocDir docDir = docDirRepository.findFirstByPidAndUserAndStatus(dirId,userId,FileStatusEnum.STATUS_AVAILABLE.getState());
             String classfiyRulesId = docDir.getClassifyRules();
             DirClassifyRules dirClassifyRules = dirClassifyRulesRepository.findFirstByPid(classfiyRulesId);
             if(dirClassifyRules.getLabelsGroup()!=null){
@@ -378,14 +381,14 @@ public class DocServiceImpl implements IDocService
         }catch (Exception e){
             e.printStackTrace();
         }
-        return parseDocDirToDTO(docDirRepository.findFirstByPid(dirId));
+        return parseDocDirToDTO(docDirRepository.findFirstByPidAndStatus(dirId,FileStatusEnum.STATUS_AVAILABLE.getState()));
 
     }
 
     @Override
     public ClassfiyRuleResponseDTO getClassfiyRule( String dirId){
         ClassfiyRuleResponseDTO classfiyRuleResponseDTO = new ClassfiyRuleResponseDTO();
-        DocDir docDir = docDirRepository.findFirstByPid(dirId);
+        DocDir docDir = docDirRepository.findFirstByPidAndStatus(dirId,FileStatusEnum.STATUS_AVAILABLE.getState());
         String classfiyId = docDir.getClassifyRules();
         ArrayList<LabelGroupResponseDTO> labelGroups = new ArrayList<LabelGroupResponseDTO>();
         JSONArray _labelGroups = new JSONArray();
@@ -845,8 +848,22 @@ public class DocServiceImpl implements IDocService
     @Override
     public LabelTypeDTOS GetAllLabelTypes(String userId){
         ArrayList<LabelType> labelTypes = labelTypeRepository.findByUser(userId);
+        ArrayList<LabelType> _labelTypes = new ArrayList<LabelType>();
+        LabelType labelType_else = new LabelType();
+        LabelType labelType_no = new LabelType();
+        for(LabelType labelType:labelTypes){
+            if(labelType.getName().equals("未分组标签")){
+                labelType_else = labelType;
+            }else if(labelType.getName().equals("废弃标签")){
+                labelType_no = labelType;
+            }else {
+                _labelTypes.add(labelType);
+            }
+        }
+        _labelTypes.add(labelType_else);
+//        _labelTypes.add(labelType_no);
         LabelTypeDTOS labelTypeDTOS = new LabelTypeDTOS();
-        labelTypeDTOS.setLabelTypes(parseLabelTypeListToDTO(labelTypes));
+        labelTypeDTOS.setLabelTypes(parseLabelTypeListToDTO(_labelTypes));
         return labelTypeDTOS;
     }
     @Override
@@ -854,14 +871,15 @@ public class DocServiceImpl implements IDocService
         ArrayList<LabelType> labelTypes = labelTypeRepository.findByUser(userId);
         ArrayList<LabelResponseDTO> labelResponseDTOS = getAllLabels(userId).getLabelResponseDTOArrayList();
         LabelGroupDTOS labelGroupDTOS = new LabelGroupDTOS();
+        LabelGroupDTO labelGroupDTO_else = new LabelGroupDTO();
         ArrayList<LabelGroupDTO> labelGroups = new ArrayList<LabelGroupDTO>();
         for(LabelType labelType:labelTypes){
             LabelGroupDTO labelGroupDTO = new LabelGroupDTO();
             ArrayList<LabelResponseDTO> labels = new ArrayList<LabelResponseDTO>();
             for(LabelResponseDTO label :labelResponseDTOS){
                 try {
-                    JSONObject type = new JSONObject(label.getType());
-                    if(labelType.getName().equals(type.getString("name"))){
+//                    JSONObject type = new JSONObject(label.getType());
+                    if(labelType.getName().equals(label.getType().getName())){
                         {
                             labels.add(label);
                         }
@@ -876,10 +894,355 @@ public class DocServiceImpl implements IDocService
             }
             labelGroupDTO.setLabels(labels);
             labelGroupDTO.setLabelType(parseLabelTypeToDTO(labelType));
-            labelGroups.add(labelGroupDTO);
+            if(labelType.getName().equals("废弃标签")){
+                labelGroupDTOS.setAbandon_labelGroup(labelGroupDTO);
+            }else if(labelType.getName().equals("未分组标签")){
+                labelGroupDTO_else = labelGroupDTO;
+            }else {
+                labelGroups.add(labelGroupDTO);
+            }
         }
+        labelGroups.add(labelGroupDTO_else);
         labelGroupDTOS.setLabelGroups(labelGroups);
         return labelGroupDTOS;
+    }
+    @Override
+    @Transactional
+    public ResponseDTO ChangeLabelTypes(JSONObject type,JSONObject label){
+        try {
+            JSONObject _type = new JSONObject();
+            _type.put("pid",type.getString("pid"));
+            _type.put("name",type.getString("name"));
+
+            labelRepository.updateTypeByPid(_type.toString(),label.getString("pid"));
+            return new ResponseDTO();
+        }catch (Exception  e){
+            e.printStackTrace();
+            throw new UserCheckException("参数解析出错");
+        }
+
+    }
+    @Override
+    @Transactional
+    public ResponseDTO DeleteLabelFromLabel(String userId,JSONObject label){
+        try {
+            LabelType labelType = labelTypeRepository.findFirstByUserAndName(userId,"废弃标签");
+            JSONObject _type = new JSONObject();
+            _type.put("pid",labelType.getPid());
+            _type.put("name",labelType.getName());
+            labelRepository.updateTypeByPid(_type.toString(),label.getString("pid"));
+            return new ResponseDTO();
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new UserCheckException("参数解析失败");
+        }
+    }
+    @Override
+    @Transactional
+    public LabelResponseDTO newLabel(String userId,String name,String describe,JSONObject labelType){
+        JSONObject _labelType = new JSONObject();
+
+
+             Label label = labelRepository.findFirstByUserAndPid(userId,name);
+             if(label!=null){
+                 throw new ExistException("该标签已存在");
+             }
+        try {
+             _labelType.put("name", labelType.getString("name"));
+             _labelType.put("pid", labelType.getString("pid"));
+             label = labelRepository.save(
+                             Label.labelBuilder().withContent(name)
+                            .withDescription(describe)
+                            .withUser(userId)
+                            .withPid(Pid.getPid())
+                            .withType(_labelType.toString())
+                            .build());
+            return parseLabelToDTO(label);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new UserCheckException("参数解析出错");
+        }
+    }
+    @Override
+    @Transactional
+    public LabelGroupDTO deleteLabelType(String userId,String labelTypeId){
+        LabelGroupDTO labelGroupDTO = new LabelGroupDTO();
+        LabelTypeResponseDTO labelType = parseLabelTypeToDTO(labelTypeRepository.findFirstByUserAndName(userId,"废弃标签"));
+        ArrayList<LabelResponseDTO> labelDTOs = getAboundandLabel(userId);
+
+        ArrayList<Label> labels = labelRepository.findByUser(userId);
+        for(Label label:labels){
+            try{
+                JSONObject _labelType = new JSONObject(label.getType());
+                if(_labelType.getString("pid").equals(labelTypeId)){
+                    JSONObject type = new JSONObject();
+                    type.put("name",labelType.getName());
+                    type.put("pid",labelType.getPid());
+                    labelRepository.updateTypeByPid(type.toString(),label.getPid());
+                    label.setType(type.toString());
+                    labelDTOs.add(parseLabelToDTO(label));
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                throw new UserCheckException("参数解析失败");
+            }
+        }
+        labelTypeRepository.deleteByPid(labelTypeId);
+        labelGroupDTO.setLabelType(labelType);
+        labelGroupDTO.setLabels(labelDTOs);
+        return labelGroupDTO;
+    }
+    @Override
+    @Transactional
+    public ResponseDTO addLabelToFile(JSONObject file, JSONObject label){
+        try{
+            if(file.getString("type").equals(DocTypeEnum.DIR_TYPE_ENUM.getType())){
+                DocDir docDir = docDirRepository.findFirstByPidAndStatus(file.getString("pid"),FileStatusEnum.STATUS_AVAILABLE.getState());
+                JSONArray labels = new JSONArray(docDir.getLabel());
+                labels.put(label);
+                docDirRepository.updateLabelByPid(labels.toString(),file.getString("pid"));
+            }else {
+                DocFileInfo docFileInfo = docFileInfoRepository.findFirstByFileId(file.getString("pid"));
+                JSONArray labels = new JSONArray(docFileInfo.getLabel());
+                labels.put(label);
+                docFileInfoRepository.updateLabelByFileid(labels.toString(),file.getString("pid"));
+            }
+            return new ResponseDTO();
+
+        }catch (Exception e){
+            e.printStackTrace();
+            throw  new UserCheckException("参数解析失败");
+        }
+    }
+    @Override
+    @Transactional
+    public ResponseDTO deleteLabelToFile(JSONObject file, String labelId){
+        try{
+            if(file.getString("type").equals(DocTypeEnum.DIR_TYPE_ENUM.getType())){
+                DocDir docDir = docDirRepository.findFirstByPidAndStatus(file.getString("pid"),FileStatusEnum.STATUS_AVAILABLE.getState());
+                JSONArray labels = new JSONArray(docDir.getLabel());
+                for(int i=0;i<labels.length();i++){
+                    JSONObject label = new JSONObject(labels.getString(i));
+                    if(label.getString("pid").equals(labelId)){
+                        labels.remove(i);
+                        break;
+                    }
+                }
+                docDirRepository.updateLabelByPid(labels.toString(),file.getString("pid"));
+            }else {
+                DocFileInfo docFileInfo = docFileInfoRepository.findFirstByFileId(file.getString("pid"));
+                JSONArray labels = new JSONArray(docFileInfo.getLabel());
+                for(int i=0;i<labels.length();i++){
+                    JSONObject label = new JSONObject(labels.getString(i));
+                    if(label.getString("pid").equals(labelId)){
+                        labels.remove(i);
+                        break;
+                    }
+                }
+                docFileInfoRepository.updateLabelByFileid(labels.toString(),file.getString("pid"));
+            }
+            return new ResponseDTO();
+
+        }catch (Exception e){
+            e.printStackTrace();
+            throw  new UserCheckException("参数解析失败");
+        }
+    }
+    @Override
+    public ResponseDTO DownLoadFile(String fileId, HttpServletResponse res){
+        DocFile docFile=docFileRepository.findFirstByPidAndStatus(fileId, FileStatusEnum.STATUS_AVAILABLE.getState());
+        String fileName = docFile.getName()+"."+docFile.getPostfix().toLowerCase();
+        res.setHeader("content-type", "application/octet-stream");
+        res.setContentType("application/octet-stream");
+        res.setCharacterEncoding("utf-8");
+        res.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+        OutputStream os = null;
+        try {
+            os = res.getOutputStream();
+        }catch (IOException e){
+            e.printStackTrace();
+            throw new UserCheckException("下载出错");
+        }
+        byte[] buff = new byte[1024];
+        BufferedInputStream bis = null;
+        try {
+            bis = new BufferedInputStream(new FileInputStream(new File("E://upLoadFiles//"
+                    + fileName)));
+            int i = bis.read(buff);
+            while (i != -1) {
+                os.write(buff, 0, buff.length);
+                os.flush();
+                i = bis.read(buff);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new UserCheckException("下载出错");
+        } finally {
+            if (bis != null) {
+                try {
+                    bis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new UserCheckException("下载出错");
+                }
+            }
+        }
+        return new ResponseDTO();
+    }
+    @Override
+    @Transactional
+    public ResponseDTO DeleteFile(String fileId){
+        DocFile docFile = docFileRepository.findFirstByPidAndStatus(fileId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        if(docFile!=null){
+            docFileRepository.updateStatusByPid(FileStatusEnum.STATUS_DELETED.getState(),fileId);
+        }else {
+            docDirRepository.updateStatusByPid(FileStatusEnum.STATUS_DELETED.getState(),fileId);
+        }
+
+        return new ResponseDTO();
+    }
+    @Override
+    public ShareDTO ShareFile(String fileId,String isPrivate,String shareTypeCode){
+        DocFile docFile = docFileRepository.findFirstByPidAndStatus(fileId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        String fileType ;
+        if(docFile==null){
+            fileType="dir";
+        }else {
+            fileType=docFile.getType().toLowerCase();
+        }
+        JSONArray shareContents = new JSONArray();
+        JSONObject shareContent = new JSONObject();
+        try {
+            shareContent.put("pid", fileId);
+            shareContent.put("type",fileType);
+            shareContents.put(shareContent);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new UserCheckException("参数解析失败");
+        }
+        String password=null;
+        if(isPrivate.equals("yes")){
+            password = Pid.getPid().substring(0,5);
+        }
+        FileShare fileShare = fileShareRepository.save(
+                FileShare.fileShareBuilder()
+                        .withContent(shareContents.toString())
+                        .withpid(Pid.getPid())
+                        .withType(shareTypeCode)
+                        .withStatus(FileStatusEnum.STATUS_AVAILABLE.getState())
+                        .withPassworld(password)
+                        .build()
+
+        );
+        ShareDTO shareDTO = new ShareDTO();
+        shareDTO.setPassworld(password);
+        shareDTO.setShare_url(SeverPathEnum.WEB_PATH.getPath()+"/#/share/"+fileShare.getPid());
+        return shareDTO;
+    }
+    @Override
+    public CheckShareDTO GetShareFile(String shareId){
+        CheckShareDTO checkShareDTO = new CheckShareDTO();
+        FileShare fileShare=fileShareRepository.findFirstByPidAndStatus(shareId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        if(fileShare!=null){
+            if(checkShareOutOfTime(fileShare)){
+                if(fileShare.getPassworld()!=null){
+                    checkShareDTO.setCode("0");//该分享有密码
+                }else {
+                    checkShareDTO.setCode("1");//没有密码
+                    try {
+                        JSONArray contents = new JSONArray(fileShare.getContent());
+                        JSONObject content = new JSONObject(contents.getString(0));
+                        if(content.getString("type")!="dir"){
+                            DocFile docFile = docFileRepository.findFirstByPidAndStatus(content.getString("pid"),FileStatusEnum.STATUS_AVAILABLE.getState());
+                            checkShareDTO.setFile(parseDocFileToDTO(docFile));
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        throw new UserCheckException("参数解析出错");
+                    }
+
+                }
+            }else {
+                checkShareDTO.setCode("2");//该分享已失效
+            }
+
+        }else {
+            checkShareDTO.setCode("3");//该分享不存在
+        }
+        return checkShareDTO;
+    }
+    @Override
+    public CheckShareDTO GetShareFileByPassword(String shareId,String password){
+        CheckShareDTO checkShareDTO = new CheckShareDTO();
+        FileShare fileShare=fileShareRepository.findFirstByPidAndStatus(shareId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        if(password.equals(fileShare.getPassworld())){
+            try {
+                JSONArray contents = new JSONArray(fileShare.getContent());
+                JSONObject content = new JSONObject(contents.getString(0));
+                if(content.getString("type")!="dir"){
+                    DocFile docFile = docFileRepository.findFirstByPidAndStatus(content.getString("pid"),FileStatusEnum.STATUS_AVAILABLE.getState());
+                    checkShareDTO.setFile(parseDocFileToDTO(docFile));
+                    checkShareDTO.setCode("4");//密码正确
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                throw new UserCheckException("参数解析出错");
+            }
+        }else {
+            checkShareDTO.setCode("5");//密码错误
+        }
+        return checkShareDTO;
+    }
+    @Override
+    public boolean  checkShareOutOfTime(FileShare fileShare){
+        Timestamp createDate = fileShare.getCreateDate();
+        long days=(System.currentTimeMillis()-createDate.getTime())/(1000*60*60);
+        switch (fileShare.getType()){
+            case "0":
+                if(days>1){
+                    return false;
+                }
+                break;
+            case "1":
+                if(days>3){
+                    return false;
+                }
+                break;
+            case "2":
+                if(days>7){
+                    return false;
+                }
+                break;
+            case "3":
+                if(days>30){
+                    return false;
+                }
+                break;
+            case "4":
+                return true;
+                default:
+                    break;
+        }
+        return true;
+
+    }
+    private  ArrayList<LabelResponseDTO> getAboundandLabel(String userId){
+        ArrayList<Label> labels = labelRepository.findByUser(userId);
+        ArrayList<LabelResponseDTO> labelResponseDTOS = new ArrayList<LabelResponseDTO>();
+        for(Label label:labels){
+            try{
+                JSONObject _labelType = new JSONObject(label.getType());
+                if(_labelType.getString("name").equals("废弃标签")){
+                    labelResponseDTOS.add(parseLabelToDTO(label));
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                throw new UserCheckException("参数解析失败");
+            }
+        }
+        return labelResponseDTOS;
     }
     private  LabelTypeResponseDTO parseLabelTypeToDTO(LabelType labelType){
         LabelTypeResponseDTO labelTypeResponseDTO = new LabelTypeResponseDTO();
@@ -985,7 +1348,16 @@ public class DocServiceImpl implements IDocService
         if(label.getDescription()!=null){
             labelResponseDTO.setDiscription(label.getDescription());
         }
-        labelResponseDTO.setType(label.getType());
+        try {
+            LabelTypeResponseDTO labelType = new LabelTypeResponseDTO();
+            JSONObject _labelType = new JSONObject(label.getType());
+            labelType.setPid(_labelType.getString("pid"));
+            labelType.setName(_labelType.getString("name"));
+            labelType.setDescription(_labelType.getString("name"));
+            labelResponseDTO.setType(labelType);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         return labelResponseDTO;
     }
     private ArrayList<LabelResponseDTO> parseLabelListToDTO(ArrayList<Label> labelArrayList){

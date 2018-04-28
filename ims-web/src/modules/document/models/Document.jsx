@@ -121,6 +121,19 @@ export default {
                 console.log(data.message);
             }
         },
+        async refreshfile(args){
+            let {data:dirFileList,data:{success}} = await api.openDir(args);
+            if(success){
+                let rulesAndFiles=[];
+                actions.document.save({rulesAndFiles});
+                let {rulesAndFileLIstResponseDTOArrayList:_rulesAndFiles}=dirFileList;
+                rulesAndFiles = _rulesAndFiles;
+                actions.document.save({rulesAndFiles});
+            }else{
+                console.log(data.message);
+            }
+        }
+        ,
         async getCurrentDir(sessionId){
             let {data:currentDir,data:{success}} = await api.getCurrentDir(sessionId);
             if(success){
@@ -130,6 +143,7 @@ export default {
                     "sessionId":sessionId,
                     "dirId":currentDir.pid
                 }
+                actions.classfiyRule.loadFileRules(args);
                 actions.select.loadFileTypesAndLabels(args);
             }else{
                 console.log(data.message);
@@ -146,16 +160,12 @@ export default {
                     }
                 }
         },
-        async handClickFile(args){
-            if(args.data.type=="dir"){
+        async handClickDir(args){
                 let _args = {
                     "sessionId":args.sessionId,
                     "dirId":args.data.pid
                 }
                 actions.document.openDir(_args);
-            }else{
-                alert("clicked");
-            }
         },
         async getCurrentDir_back(sessionId){
             let {data:currentDir,data:{success}} = await api.getCurrentDir(sessionId);
@@ -166,7 +176,7 @@ export default {
                     "sessionId":sessionId,
                     "dirId":currentDir.pid
                 }
-                
+                actions.classfiyRule.loadFileRules(args);
                 actions.select.loadFileTypesAndLabels(args);
             }else{
                 console.log(data.message);
@@ -189,9 +199,47 @@ export default {
         async insertTodirFileList(args){
             await actions.document.refresh();
             actions.document.insertToRulesAndFiles(args);
+        },
+        async addLabelToFile (args){
+            let {data,data:{success}} = await api.addLabelToFile(args);
+            if(success){
+                return success;
+            }else{
+                alert(data.message)
+            }
+
+        },
+        async deleteLabelFromFile(args){
+            let {data,data:{success}} = await api.deleteLabelFromFile(args);
+            if(success){
+                return success;
+            }else{
+                alert(data.message)
+            }
+        },
+        async downLoadFile(args){
+            let {data,data:{success}} = await api.downLoadFile(args);
+            console.log(data);
+            return data;
+            // if(success){
+            //     return success;
+            // }else{
+            //     alert(data.message)
+            // }
+        },
+        async deleteFile(args){
+            let  {data:{success}} = await api.deleteFile(args);
+            if(success){
+                actions.document.getRulesAndFiles(args);
+                return success;
+            }
+        },
+        async getRulesAndFiles(args){
+            let {data,data:{success}} = await api.getRulesAndFiles(args);
+            if(success){
+                let {rulesAndFileLIstResponseDTOArrayList:rulesAndFiles}=data;
+                actions.document.save({rulesAndFiles});
+            }
         }
-        
-        
-       
     }
 }

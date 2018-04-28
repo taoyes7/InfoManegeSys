@@ -4,6 +4,7 @@ import { Modal, Button,Collapse,Icon ,Breadcrumb, FormControl} from 'tinper-bee'
 import {Tag ,Menu , Dropdown,Card,Divider} from 'uiw';
 import ClassfiyRuleModel from "../models/ClassfiyRule"
 import mirror, { actions, connect, render } from 'mirrorx';
+import FreeScrollBar from 'react-free-scrollbar';
 
 //注入Model
 mirror.model(ClassfiyRuleModel);
@@ -32,25 +33,32 @@ mirror.model(ClassfiyRuleModel);
     let key_label_list_content_and=0;
     let key_label_list_content_or=0;
     let key_label_list_content_no=0; 
-    let key_filetype=0;
-    
+   
+
+    let key_label_and_type = 0;
+    let key_label_and_label = 0;
+    let key_label_or_type = 0;
+    let key_label_or_label = 0;
+    let key_label_no_type = 0;
+    let key_label_no_label = 0;
 
     const menuRuleAnd = (
         <Menu 
     defaultActive="1"
     defaultOpened={['5']}
     style={{width:240}}
-    // onClose={() => actions.classfiyRule.onClose()}
-    // onSelect={() => actions.classfiyRule.onSelect()}
   >
-    <Menu.Item index="1"><Icon type="date" />标签分类</Menu.Item>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>统一标签类型</span></span>}>
-      {
-          props.state.old_labels.map(function(label){
-              if(label.pid!="null"){
-                key_label_list_content_and++;
-                  return(
-                    <Menu.Item index={"2-"+key_label_list_content_and} key={key_label_list_content_and} title={<span><Icon type="menu" /><span></span></span>}>
+    {
+        props.labelGroups.map(function(labelGroup){
+            key_label_and_type++;
+            key_label_and_label=0;
+            return (
+            <Menu.SubMenu index={key_label_and_type} key={key_label_and_type} title={<span><Icon type="star-on" /><span>{labelGroup.labelType.name}</span></span>}>
+            {
+                labelGroup.labels.map(function(label){
+                    key_label_and_label++;
+                    return(
+                        <Menu.Item index={key_label_and_type+"-"+key_label_and_label} key={key_label_and_type+"-"+key_label_and_label}>
                         <Tag className="tag"  color="#52575c" 
                          onClick={ ()=>
                             {
@@ -82,16 +90,15 @@ mirror.model(ClassfiyRuleModel);
                             } 
                         }
                         >{label.content}</Tag>
-                        
-                    </Menu.Item>
-                  );
-              }
-             
-          })
-      }
-    </Menu.SubMenu>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>其他</span></span>}>
-    </Menu.SubMenu>
+                        </Menu.Item>
+                    )
+                })
+            }
+            </Menu.SubMenu>
+            )
+        })
+    }
+      
   </Menu>
     );
     const menuRuleOr = (
@@ -99,17 +106,19 @@ mirror.model(ClassfiyRuleModel);
     defaultActive="1"
     defaultOpened={['5']}
     style={{width:240}}
-    // onClose={() => actions.classfiyRule.onClose()}
-    // onSelect={() => actions.classfiyRule.onSelect()}
   >
-    <Menu.Item index="1"><Icon type="date" />标签分类</Menu.Item>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>统一标签类型</span></span>}>
-      {
-          props.state.old_labels.map(function(label){
-              if(label.pid!="null"){
-                key_label_list_content_or++;
+
+  {
+        props.labelGroups.map(function(labelGroup){
+            key_label_or_type++;
+            key_label_or_label=0;
+            return (
+            <Menu.SubMenu index={key_label_or_type} key={key_label_or_type} title={<span><Icon type="star-on" /><span>{labelGroup.labelType.name}</span></span>}>
+            {
+                labelGroup.labels.map(function(label){
+                    key_label_or_label++;
                   return(
-                    <Menu.Item index={"2-"+key_label_list_content_or} key={key_label_list_content_or} title={<span><Icon type="menu" /><span></span></span>}>
+                    <Menu.Item index={key_label_or_type+"-"+key_label_or_label} key={key_label_or_type+"-"+key_label_or_label} title={<span><Icon type="menu" /><span></span></span>}>
                         <Tag className="tag"  color="#52575c" 
                          onClick={ ()=>
                             {
@@ -144,13 +153,14 @@ mirror.model(ClassfiyRuleModel);
                         
                     </Menu.Item>
                   );
-              }
-             
-          })
-      }
-    </Menu.SubMenu>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>其他</span></span>}>
-    </Menu.SubMenu>
+                })
+            }
+            </Menu.SubMenu>
+            )
+        })
+    }
+    
+    
   </Menu>
     );
     const menuRuleNo = (
@@ -158,17 +168,18 @@ mirror.model(ClassfiyRuleModel);
     defaultActive="1"
     defaultOpened={['5']}
     style={{width:240}}
-    // onClose={() => actions.classfiyRule.onClose()}
-    // onSelect={() => actions.classfiyRule.onSelect()}
   >
-    <Menu.Item index="1"><Icon type="date" />标签分类</Menu.Item>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>统一标签类型</span></span>}>
-      {
-          props.state.old_labels.map(function(label){
-              if(label.pid!="null"){
-                key_label_list_content_no++;
+  {
+        props.labelGroups.map(function(labelGroup){
+            key_label_no_type++;
+            key_label_no_label=0;
+            return (
+            <Menu.SubMenu index={key_label_no_type} key={key_label_no_type} title={<span><Icon type="star-on" /><span>{labelGroup.labelType.name}</span></span>}>
+            {
+                labelGroup.labels.map(function(label){
+                    key_label_no_label++;
                   return(
-                    <Menu.Item index={"2-"+key_label_list_content_no} key={key_label_list_content_no} title={<span><Icon type="menu" /><span></span></span>}>
+                    <Menu.Item index={key_label_no_type+"-"+key_label_no_label} key={key_label_no_type+"-"+key_label_no_label} title={<span><Icon type="menu" /><span></span></span>}>
                         <Tag className="tag"  color="#52575c" 
                          onClick={ ()=>
                             {
@@ -200,18 +211,18 @@ mirror.model(ClassfiyRuleModel);
                             } 
                         }
                         >{label.content}</Tag>
+                        
                     </Menu.Item>
                   );
-              }
-             
-          })
-      }
-    </Menu.SubMenu>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>其他</span></span>}>
-    </Menu.SubMenu>
+                })
+            }
+            </Menu.SubMenu>
+            )
+        })
+    }
   </Menu>
     );
-    
+    let key_filetype=0;
     const menuFileType = (
         <Menu 
     defaultActive="1"
@@ -224,7 +235,7 @@ mirror.model(ClassfiyRuleModel);
                 key_filetype++;
                   return(
                     <Menu.Item index={""+key_filetype} key={key_filetype} title={<span><Icon type="menu" /><span></span></span>}>
-                        <Tag className="tag"  color="#52575c" 
+                        <div  
                          onClick={ ()=>
                             {
                                 let isAdd=false;
@@ -247,10 +258,9 @@ mirror.model(ClassfiyRuleModel);
                                 }else{
                                         alert("该类型已添加");
                                 }
-    
                             } 
                         }
-                        >{fileType.name}</Tag>
+                        >{fileType.name}</div>
                     </Menu.Item>
                   );
               }
@@ -258,21 +268,33 @@ mirror.model(ClassfiyRuleModel);
       }
   </Menu>
     );
+
+
     //change
+
+    let key_label_and_type_change=0;
+    let key_label_and_label_change=0;
+    let key_label_or_type_change=0;
+    let key_label_or_label_change=0;
+    let key_label_no_type_change=0;
+    let key_label_no_label_change=0;
     const menuRuleAnd_change = (
         <Menu 
     defaultActive="1"
     defaultOpened={['5']}
     style={{width:240}}
   >
-    <Menu.Item index="1"><Icon type="date" />标签分类</Menu.Item>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>统一标签类型</span></span>}>
-      {
-          props.state.old_labels.map(function(label){
-              if(label.pid!="null"){
-                key_label_list_content_and++;
+  {
+        props.labelGroups.map(function(labelGroup){
+            key_label_and_type_change++;
+            key_label_and_label_change=0;
+            return (
+            <Menu.SubMenu index={key_label_and_type_change} key={key_label_and_type_change} title={<span><Icon type="star-on" /><span>{labelGroup.labelType.name}</span></span>}>
+            {
+                labelGroup.labels.map(function(label){
+                    key_label_and_label_change++;
                   return(
-                    <Menu.Item index={"2-"+key_label_list_content_and} key={key_label_list_content_and} title={<span><Icon type="menu" /><span></span></span>}>
+                    <Menu.Item index={key_label_and_type_change+"-"+key_label_and_label_change} key={key_label_and_type_change+"-"+key_label_and_label_change} title={<span><Icon type="menu" /><span></span></span>}>
                         <Tag className="tag"  color="#52575c" 
                          onClick={ ()=>
                             {
@@ -308,13 +330,13 @@ mirror.model(ClassfiyRuleModel);
                         
                     </Menu.Item>
                   );
-              }
-             
-          })
-      }
-    </Menu.SubMenu>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>其他</span></span>}>
-    </Menu.SubMenu>
+                })
+            }
+            </Menu.SubMenu>
+            )
+        })
+    }
+      
   </Menu>
     );
     const menuRuleOr_change = (
@@ -323,15 +345,19 @@ mirror.model(ClassfiyRuleModel);
     defaultOpened={['5']}
     style={{width:240}}
   >
-    <Menu.Item index="1"><Icon type="date" />标签分类</Menu.Item>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>统一标签类型</span></span>}>
-      {
-          props.state.old_labels.map(function(label){
-              if(label.pid!="null"){
-                key_label_list_content_or++;
+    
+    {
+        props.labelGroups.map(function(labelGroup){
+            key_label_or_type_change++;
+            key_label_or_label_change=0;
+            return (
+            <Menu.SubMenu index={key_label_or_type_change} key={key_label_or_type_change} title={<span><Icon type="star-on" /><span>{labelGroup.labelType.name}</span></span>}>
+            {
+                labelGroup.labels.map(function(label){
+                    key_label_or_label_change++;
                   return(
-                    <Menu.Item index={"2-"+key_label_list_content_or} key={key_label_list_content_or} title={<span><Icon type="menu" /><span></span></span>}>
-                        <Tag className="tag"  color="#52575c" 
+                    <Menu.Item index={key_label_or_type_change+"-"+key_label_or_label_change} key={key_label_or_type_change+"-"+key_label_or_label_change} title={<span><Icon type="menu" /><span></span></span>}>
+                         <Tag className="tag"  color="#52575c" 
                          onClick={ ()=>
                             {
                                 let isAdd=false;
@@ -366,13 +392,13 @@ mirror.model(ClassfiyRuleModel);
                         
                     </Menu.Item>
                   );
-              }
-             
-          })
-      }
-    </Menu.SubMenu>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>其他</span></span>}>
-    </Menu.SubMenu>
+                })
+            }
+            </Menu.SubMenu>
+            )
+        })
+    }
+     
   </Menu>
     );
     const menuRuleNo_change = (
@@ -381,14 +407,17 @@ mirror.model(ClassfiyRuleModel);
     defaultOpened={['5']}
     style={{width:240}}
   >
-    <Menu.Item index="1"><Icon type="date" />标签分类</Menu.Item>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>统一标签类型</span></span>}>
-      {
-          props.state.old_labels.map(function(label){
-              if(label.pid!="null"){
-                key_label_list_content_no++;
+  {
+        props.labelGroups.map(function(labelGroup){
+            key_label_no_type_change++;
+            key_label_no_label_change=0;
+            return (
+            <Menu.SubMenu index={key_label_no_type_change} key={key_label_no_type_change} title={<span><Icon type="star-on" /><span>{labelGroup.labelType.name}</span></span>}>
+            {
+                labelGroup.labels.map(function(label){
+                    key_label_no_label_change++;
                   return(
-                    <Menu.Item index={"2-"+key_label_list_content_no} key={key_label_list_content_no} title={<span><Icon type="menu" /><span></span></span>}>
+                    <Menu.Item index={key_label_no_type_change+"-"+key_label_no_label_change} key={key_label_no_type_change+"-"+key_label_no_label_change} title={<span><Icon type="menu" /><span></span></span>}>
                         <Tag className="tag"  color="#52575c" 
                          onClick={ ()=>
                             {
@@ -421,17 +450,19 @@ mirror.model(ClassfiyRuleModel);
                             } 
                         }
                         >{label.content}</Tag>
+                        
                     </Menu.Item>
                   );
-              }
-             
-          })
-      }
-    </Menu.SubMenu>
-    <Menu.SubMenu index="2" title={<span><Icon type="menu" /><span>其他</span></span>}>
-    </Menu.SubMenu>
+                })
+            }
+            </Menu.SubMenu>
+            )
+        })
+    }
+    
   </Menu>
     );
+    let key_filetype_change=0;
     const menuFileType_change = (
         <Menu 
     defaultActive="1"
@@ -441,9 +472,9 @@ mirror.model(ClassfiyRuleModel);
       {
           props.state.oldFileType.map(function(fileType){
               
-                key_filetype++;
+            key_filetype_change++;
                   return(
-                    <Menu.Item index={""+key_filetype} key={key_filetype} title={<span><Icon type="menu" /><span></span></span>}>
+                    <Menu.Item index={""+key_filetype_change} key={key_filetype_change} title={<span><Icon type="menu" /><span></span></span>}>
                         <Tag className="tag"  color="#52575c" 
                          onClick={ ()=>
                             {
@@ -481,7 +512,7 @@ mirror.model(ClassfiyRuleModel);
     return (
         <div>
             <Button id="classfiyRule" className="buttom-min" colors="primary" onClick={()=> actions.classfiyRule.openModalAndLoadOldLabels({"sessionId":props.sessionId,"dirId":props.currentDir.pid})}> 管理分类规则</Button>
-
+            <FreeScrollBar>
             <Modal
             show={props.state.Model_classifyRule}
             onHide={()=> actions.classfiyRule.closeModal()}
@@ -494,7 +525,6 @@ mirror.model(ClassfiyRuleModel);
             <Modal.Body>
             
                 <div>管理规则</div>
-                {console.log(props.state.labelGroups)}
                 {
                     props.state.labelGroups.map(function(labelGroup){
                         
@@ -505,7 +535,8 @@ mirror.model(ClassfiyRuleModel);
                                 let args={
                                     "sessionId":props.sessionId,
                                     "curPid":labelGroup.pid,
-                                    "classfiyRule":props.state.classfiyRule
+                                    "classfiyRule":props.state.classfiyRule,
+                                    "dirId":props.currentDir.pid
                                 };
                                 actions.classfiyRule.exchangLevel(args);
                             }}
@@ -607,7 +638,7 @@ mirror.model(ClassfiyRuleModel);
             </Modal.Footer>
             
         </Modal>
-
+        </FreeScrollBar>
         <Modal
             show = { props.state.showModal_change }
             onHide = { ()=> {
@@ -686,6 +717,11 @@ mirror.model(ClassfiyRuleModel);
                     <Button onClick={()=>{
                         let showModal_change = false;
                         actions.classfiyRule.save({showModal_change});
+                        let args={
+                            "sessionId":props.sessionId,
+                            "dirId":props.currentDir.pid
+                        }
+                        actions.document.refreshfile(args);
                     }  } colors="primary">完成</Button>
                 </Modal.Footer>
            </Modal>
@@ -697,6 +733,7 @@ export default connect((state) => {//连接组件和状态管理
     return {
         state: state.classfiyRule,
         sessionId:state.login.sessionId,
-        currentDir:state.document.currentDir
+        currentDir:state.document.currentDir,
+        labelGroups:state.docMenu.labelGroups
     }
 })(ClassfiyRule)
