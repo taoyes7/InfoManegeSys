@@ -7,7 +7,7 @@ public interface ITestService {
      public String getNameById();
      String getNameFromRedis();
 
-     public void testApi();
+//     public void testApi();
      public void testNlpApi(String title,String content);
      public void readWorldForDoc();
      public void readWorldForDocX();

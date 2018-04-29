@@ -78,7 +78,6 @@ public class LabelResponseDTO extends ResponseDTO implements Serializable {
             label.put("color",color);
             label.put("score",score);
             label.put("pid",pid);
-            label.put("type",type);
             label.put("discription",discription);
         }catch (Exception e){
             e.printStackTrace();

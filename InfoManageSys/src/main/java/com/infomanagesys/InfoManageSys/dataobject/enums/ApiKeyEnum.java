@@ -1,7 +1,8 @@
 package com.infomanagesys.InfoManageSys.dataobject.enums;
 
 public enum ApiKeyEnum {
-    BAIDUI_NLP_ENUM("11003509","uVzOkw5KkPpmyzrmbkyGXSjN","hAkCrjUKjhWhwTNG4plqPWEsIIEcsWLp","百度自然语言处理apiKey");
+    BAIDUI_NLP_ENUM("11003509","uVzOkw5KkPpmyzrmbkyGXSjN","hAkCrjUKjhWhwTNG4plqPWEsIIEcsWLp","百度自然语言处理apiKey"),
+    ALI_IMGREC_ENUM("","24830743","6523fa9cfee5b8251d345d2ded48f724","阿里图像识别apikey");
     private String appid;
     private String apikey;
     private String secretKey;

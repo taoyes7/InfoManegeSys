@@ -3,7 +3,6 @@ package com.infomanagesys.InfoManageSys.service.doc.impl;
 import com.baidu.aip.nlp.AipNlp;
 import com.infomanagesys.InfoManageSys.dao.mapper.TestMapper;
 import com.infomanagesys.InfoManageSys.exception.TestException;
-import com.infomanagesys.InfoManageSys.service.AsyncDemo_智能图像_图像识别_图像打标;
 import com.infomanagesys.InfoManageSys.service.doc.itf.ITestService;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
@@ -15,13 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.HashMap;
 
 
@@ -62,21 +58,21 @@ public class TestServiceImpl implements ITestService {
         return nameFromRedis;
     }
 
-    @Override
-    public void testApi(){
-//        String body= "{\"type\":0\n\"image_url\":\"https://img.alicdn.com/tfs/TB1VHjASpXXXXcPaXXXXXXXXXXX-780-300.jpg\"}";
-        JSONObject body = new JSONObject();
-        try{
-            body.put("type",0);
-            body.put("image_url","https://www.crifan.com/files/pic/uploads/2013/09/after-byte-array-cast-to-string-go-run-ok_thumb.png");
-        }catch (Exception e){
-            ;
-        }
-        byte[] _body =  body.toString().getBytes();
-
-        AsyncDemo_智能图像_图像识别_图像打标 apidemo = new AsyncDemo_智能图像_图像识别_图像打标();
-        apidemo.智能图像_图像识别_图像打标Demo(_body);
-    }
+//    @Override
+//    public void testApi(){
+////        String body= "{\"type\":0\n\"image_url\":\"https://img.alicdn.com/tfs/TB1VHjASpXXXXcPaXXXXXXXXXXX-780-300.jpg\"}";
+//        JSONObject body = new JSONObject();
+//        try{
+//            body.put("type",0);
+//            body.put("image_url","https://www.crifan.com/files/pic/uploads/2013/09/after-byte-array-cast-to-string-go-run-ok_thumb.png");
+//        }catch (Exception e){
+//            ;
+//        }
+//        byte[] _body =  body.toString().getBytes();
+//
+//        AsyncDemo_智能图像_图像识别_图像打标 apidemo = new AsyncDemo_智能图像_图像识别_图像打标();
+//        apidemo.智能图像_图像识别_图像打标Demo(_body);
+//    }
     @Override
     public void testNlpApi(String title,String content){
         AipNlp client = new AipNlp("11003509", "uVzOkw5KkPpmyzrmbkyGXSjN", "hAkCrjUKjhWhwTNG4plqPWEsIIEcsWLp");

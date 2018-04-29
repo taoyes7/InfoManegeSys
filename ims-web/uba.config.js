@@ -38,6 +38,10 @@ const proxyConfig = [{
   enable: true,
   router: "/user/*",
   url: "http://127.0.0.1:8085"
+},{
+  enable: true,
+  router: "/photo/*",
+  url: "http://127.0.0.1:8085"
 }];
 
 

@@ -221,17 +221,11 @@ const Doc_menu = (props) => {//组件定义
                     </Modal.Body>
 
                     <Modal.Footer className="text-center">
-                        <Button bordered style={{ marginRight: 20 }} onClick={()=>{
-                        let model_upfile = false;
-                        actions.docMenu.save({model_upfile});
-                    }} >
-                            取消
-                        </Button>
                         <Button colors="primary" onClick={()=>{
                         let model_upfile = false;
                         actions.docMenu.save({model_upfile});
                     }}>
-                            确认
+                            完成
                         </Button>
                     </Modal.Footer>
                 </Modal>

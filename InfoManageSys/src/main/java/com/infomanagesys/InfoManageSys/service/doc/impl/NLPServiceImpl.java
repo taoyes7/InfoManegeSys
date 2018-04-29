@@ -11,6 +11,7 @@ import com.infomanagesys.InfoManageSys.dataobject.entity.label.LabelType;
 import com.infomanagesys.InfoManageSys.dataobject.enums.ApiKeyEnum;
 import com.infomanagesys.InfoManageSys.dataobject.enums.LabelEnum;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LabelResponseDTO;
+import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LabelTypeResponseDTO;
 import com.infomanagesys.InfoManageSys.service.doc.itf.INLPService;
 import com.infomanagesys.InfoManageSys.util.Pid;
 import org.apache.poi.hwpf.HWPFDocument;
@@ -94,12 +95,17 @@ public class NLPServiceImpl implements INLPService {
                                 .withStatus("0").build();
                         label = labelRepository.save(label);
                     }
+                    LabelTypeResponseDTO labelTypeResponseDTO =new LabelTypeResponseDTO();
+                    labelTypeResponseDTO.setName(new JSONObject(label.getType()).getString("name"));
+                    labelTypeResponseDTO.setPid(new JSONObject(label.getType()).getString("pid"));
+
                     LabelResponseDTO labelResponseDTO = new LabelResponseDTO();
                     labelResponseDTO.setContent(item.getString("tag"));
                     labelResponseDTO.setScore(item.getDouble("score"));
                     labelResponseDTO.setLevel(getLevelByScore(item.getDouble("score")));
                     labelResponseDTO.setColor(LabelEnum.GetEnumByLevel(labelResponseDTO.getLevel()).getColor());
                     labelResponseDTO.setPid(label.getPid());
+                    labelResponseDTO.setType(labelTypeResponseDTO);
                     labelResponseDTOArrayList.add(labelResponseDTO);
                 }
             }

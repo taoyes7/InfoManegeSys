@@ -6,7 +6,7 @@ export default {
         
     },
     reducers : {
-        save_1(state, data) {
+        save(state, data) {
             return {
                 ...state,
                 ...data
