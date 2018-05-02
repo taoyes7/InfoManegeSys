@@ -16,6 +16,24 @@ mirror.hook((action, getState) => {
   const { routing: { location } } = getState();
   if (action.type === "@@router/LOCATION_CHANGE" && location.pathname === '/photo') {
     // actions.user.load();
+    actions.photo.getRootAblum({"sessionId":getState().login.sessionId}).then(
+      (result)=>{
+        if(result){
+          let args={
+            "sessionId":getState().login.sessionId,
+            "ablumId":getState().photo.rootAblum.pid
+          }
+          actions.photo.openAblum(args).then((result)=>{
+            if(result){
+              actions.photo.getCurrentAblum(args);
+              actions.photo.getAblumData(args);
+              actions.photo.getUnClassfiyedAblum(args);
+            }
+          });
+        }
+      }
+    );
+    
   }
 });
 

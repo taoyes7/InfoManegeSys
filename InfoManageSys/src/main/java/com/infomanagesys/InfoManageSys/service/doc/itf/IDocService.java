@@ -45,7 +45,7 @@ public interface IDocService {
     public ResponseDTO deleteLabelToFile(JSONObject file, String labelId);
     public ResponseDTO DownLoadFile(String fileId, HttpServletResponse res);
     public ResponseDTO DeleteFile(String fileId);
-    public ShareDTO ShareFile(String fileId,String isPrivate,String shareTypeCode);
+    public ShareDTO ShareFile(String userId,String fileId,String isPrivate,String shareTypeCode);
     public CheckShareDTO GetShareFile(String shareId);
     public CheckShareDTO GetShareFileByPassword(String shareId,String password);
     public boolean  checkShareOutOfTime(FileShare fileShare);

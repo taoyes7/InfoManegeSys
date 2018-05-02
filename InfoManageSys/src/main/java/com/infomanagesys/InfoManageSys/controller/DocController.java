@@ -390,7 +390,8 @@ public class DocController {
     }
     @RequestMapping(value="/share/download/file", method = RequestMethod.GET)
     public void DownLoadShareFile(@RequestParam("fileId") String fileId,HttpServletResponse res){
-            docService.DownLoadFile(fileId,res);
+
+        docService.DownLoadFile(fileId,res);
     }
     @RequestMapping(value="/delete/file", method = RequestMethod.POST)
     public ResponseDTO DeleteFile(@RequestParam("sessionId") String sessionId,@RequestParam("fileId") String fileId){
@@ -404,7 +405,7 @@ public class DocController {
     @RequestMapping(value="/share/file", method = RequestMethod.POST)
     public ShareDTO ShareFile(@RequestParam("sessionId") String sessionId,@RequestParam("fileId") String fileId,@RequestParam("isPrivate") String isPrivate,@RequestParam("shareTypeCode") String shareTypeCode){
         if (userService.userCheck(sessionId)) {
-            return  docService.ShareFile(fileId,isPrivate,shareTypeCode);
+            return  docService.ShareFile(userService.getUserId(sessionId),fileId,isPrivate,shareTypeCode);
         }else {
             throw new UserCheckException("用户校验失败");
         }

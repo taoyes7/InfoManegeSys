@@ -16,11 +16,14 @@ import com.infomanagesys.InfoManageSys.exception.UserCheckException;
 import com.infomanagesys.InfoManageSys.service.photo.itf.IImgRecService;
 import com.infomanagesys.InfoManageSys.util.Pid;
 import com.infomanagesys.InfoManageSys.util.SyncImgRecClient;
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.codec.binary.Base64;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,7 +82,7 @@ public class ImgRecServiceImpl implements IImgRecService {
         return codeData;
     }
     @Override
-    public ArrayList<LabelResponseDTO> BaiDuImgRec(Photo photo, String userId){
+    public ArrayList<LabelResponseDTO> BaiDuImgRec(Photo photo, String userId,double imgSize){
         ArrayList<LabelResponseDTO> labelResponseDTOArrayList = new ArrayList<LabelResponseDTO>();
         AipImageClassify client = new AipImageClassify(ApiKeyEnum.BAIDUI_NLP_ENUM.getAppid()
                 , ApiKeyEnum.BAIDUI_NLP_ENUM.getApikey()
@@ -87,8 +90,19 @@ public class ImgRecServiceImpl implements IImgRecService {
         client.setConnectionTimeoutInMillis(2000);
         client.setSocketTimeoutInMillis(60000);
         // 调用接口
-        String path = SeverPathEnum.FILE_PATH.getPath()+"/"+userId+"/photo/"+photo.getPid()+"."+photo.getType();
-        JSONObject res = client.advancedGeneral(path, new HashMap<String, String>());
+        String srcPath = SeverPathEnum.FILE_PATH.getPath()+"/"+userId+"/photo/"+photo.getPid()+"."+photo.getType();
+        String desPath = SeverPathEnum.FILE_PATH.getPath() + "/" + userId + "/tempFile/" + photo.getPid() + "." + photo.getType();
+
+        try {
+//                Thumbnails.of(srcPath).scale(2.0/imgSize - 0.001).toFile(desPath);
+            Thumbnails.of(srcPath).size(200,300).toFile(desPath);
+            srcPath =desPath;
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new UserCheckException("图片压缩失败");
+        }
+        JSONObject res = client.advancedGeneral(srcPath, new HashMap<String, String>());
+
         System.out.println(res.toString());
         try {
             JSONArray labels = res.getJSONArray("result");

@@ -32,6 +32,10 @@ public class PhotoAlbum implements Serializable {
     private String parentId;
     @Column
     private String user;
+    @Column
+    private int level;
+    @Column
+    private String img;
 
     public Long getId() {
         return id;
@@ -112,9 +116,25 @@ public class PhotoAlbum implements Serializable {
         this.user = user;
     }
 
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public String getImg() {
+        return img;
+    }
+
+    public void setImg(String img) {
+        this.img = img;
+    }
+
     @Override
     public String toString() {
-        return "Photo{" +
+        return "PhotoAlbum{" +
                 "id=" + id +
                 ", pid='" + pid + '\'' +
                 ", createDate=" + createDate +
@@ -125,6 +145,8 @@ public class PhotoAlbum implements Serializable {
                 ", labels='" + labels + '\'' +
                 ", parentId='" + parentId + '\'' +
                 ", user='" + user + '\'' +
+                ", level=" + level +
+                ", img='" + img + '\'' +
                 '}';
     }
 
@@ -142,6 +164,8 @@ public class PhotoAlbum implements Serializable {
         private String name;
         private String labels;
         private String parentId;
+        private int level;
+        private String img;
         public PhotoAlbumBuilder withId(Long id){
             this.id=id;
             return this;
@@ -182,7 +206,15 @@ public class PhotoAlbum implements Serializable {
             this.parentId =parentId;
             return this;
         }
+        public PhotoAlbumBuilder withLevel(int level){
+            this.level=level;
+            return this;
+        }
 
+        public PhotoAlbumBuilder withImg(String img){
+            this.img=img;
+            return this;
+        }
         public PhotoAlbum build(){
             PhotoAlbum photoAlbum = new PhotoAlbum();
             photoAlbum.setId(this.id);
@@ -193,6 +225,8 @@ public class PhotoAlbum implements Serializable {
             photoAlbum.setDescription(this.description);
             photoAlbum.setStatus(this.status);
             photoAlbum.setUser(this.user);
+            photoAlbum.setLevel(this.level);
+            photoAlbum.setImg(this.img);
             if(this.id==null){
                 Timestamp currentDate = new Timestamp(System.currentTimeMillis());
                 photoAlbum.setCreateDate(currentDate);

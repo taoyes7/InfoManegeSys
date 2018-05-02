@@ -94,7 +94,7 @@ public class DocServiceImpl implements IDocService
         FileInputStream fis = null;
         try {
             fis = (FileInputStream) file.getInputStream();
-            fos = new FileOutputStream(new File("E://upLoadFiles//" + uploadFileName
+            fos = new FileOutputStream(new File(SeverPathEnum.FILE_PATH.getPath() +"//"+userId+"//file//"+ uploadFileName
                     + ".")
                     + uploadFileSuffix);
             byte[] temp = new byte[1024];
@@ -1052,6 +1052,7 @@ public class DocServiceImpl implements IDocService
     @Override
     public ResponseDTO DownLoadFile(String fileId, HttpServletResponse res){
         DocFile docFile=docFileRepository.findFirstByPidAndStatus(fileId, FileStatusEnum.STATUS_AVAILABLE.getState());
+        String userId = docFile.getUser();
         String fileName = docFile.getName()+"."+docFile.getPostfix().toLowerCase();
         res.setHeader("content-type", "application/octet-stream");
         res.setContentType("application/octet-stream");
@@ -1067,7 +1068,7 @@ public class DocServiceImpl implements IDocService
         byte[] buff = new byte[1024];
         BufferedInputStream bis = null;
         try {
-            bis = new BufferedInputStream(new FileInputStream(new File("E://upLoadFiles//"
+            bis = new BufferedInputStream(new FileInputStream(new File(SeverPathEnum.FILE_PATH.getPath() +"//"+userId+"//file//"
                     + fileName)));
             int i = bis.read(buff);
             while (i != -1) {
@@ -1103,7 +1104,7 @@ public class DocServiceImpl implements IDocService
         return new ResponseDTO();
     }
     @Override
-    public ShareDTO ShareFile(String fileId,String isPrivate,String shareTypeCode){
+    public ShareDTO ShareFile(String userId,String fileId,String isPrivate,String shareTypeCode){
         DocFile docFile = docFileRepository.findFirstByPidAndStatus(fileId,FileStatusEnum.STATUS_AVAILABLE.getState());
         String fileType ;
         if(docFile==null){
@@ -1133,6 +1134,7 @@ public class DocServiceImpl implements IDocService
                         .withType(shareTypeCode)
                         .withStatus(FileStatusEnum.STATUS_AVAILABLE.getState())
                         .withPassworld(password)
+                        .withUser(userId)
                         .build()
 
         );

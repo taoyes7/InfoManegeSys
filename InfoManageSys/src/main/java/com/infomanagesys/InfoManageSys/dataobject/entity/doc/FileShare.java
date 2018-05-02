@@ -27,6 +27,8 @@ public class FileShare implements Serializable {
     private String status;
     @Column
     private Timestamp updateDate;
+    @Column
+    private String user;
 
     public Long getId() {
         return id;
@@ -92,17 +94,26 @@ public class FileShare implements Serializable {
         this.updateDate = updateDate;
     }
 
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
     @Override
     public String toString() {
         return "FileShare{" +
                 "id=" + id +
                 ", pid='" + pid + '\'' +
-                ", type=" + type +
+                ", type='" + type + '\'' +
                 ", createDate=" + createDate +
                 ", content='" + content + '\'' +
                 ", passworld='" + passworld + '\'' +
                 ", status='" + status + '\'' +
                 ", updateDate=" + updateDate +
+                ", user='" + user + '\'' +
                 '}';
     }
 
@@ -118,6 +129,7 @@ public class FileShare implements Serializable {
         private String passworld;
         private String status;
         private Timestamp updateDate;
+        private String user;
         public FileShareBuilder withId(Long id){
             this.id=id;
             return this;
@@ -150,6 +162,10 @@ public class FileShare implements Serializable {
             this.updateDate = updateDate;
             return this;
         }
+        public FileShareBuilder withUser(String user){
+            this.user=user;
+            return this;
+        }
 
         public FileShare build(){
 //            Timestamp currentDate = new Timestamp(System.currentTimeMillis());
@@ -161,6 +177,7 @@ public class FileShare implements Serializable {
             fileShare.setContent(this.content);
             fileShare.setPassworld(this.passworld);
             fileShare.setStatus(this.status);
+            fileShare.setUser(this.user);
             if(this.id==null){
                 Timestamp currentDate = new Timestamp(System.currentTimeMillis());
                 fileShare.setCreateDate(currentDate);

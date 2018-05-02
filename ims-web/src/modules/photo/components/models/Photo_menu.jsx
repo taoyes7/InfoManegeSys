@@ -4,7 +4,12 @@ export default {
     name : "photoMenu",
     initialState : {
         model_upImg:false,
-        newImg_descreption:""
+        newImg_descreption:"",
+        model_newAlbum:false,
+        newAblum_descreption:"",
+        newAblum_name:"",
+        temp_labels:[]
+
     },
     reducers : {
         save(state, data) {
@@ -33,6 +38,15 @@ export default {
             } else if (info.file.status === 'error') {
               console.log(`${info.file.name} file upload failed.`);
             }
+          },
+          async createAblum(args){
+              let {data,data:{success}} = await api.createAblum(args);
+              if(success){
+                let {ablums:ablumS,photos:photoS} = data;
+                actions.photo.save({ablumS});
+                actions.photo.save({photoS});
+                return success;
+              }
           }
     }
 }

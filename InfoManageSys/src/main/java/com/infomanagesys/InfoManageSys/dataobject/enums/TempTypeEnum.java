@@ -2,7 +2,8 @@ package com.infomanagesys.InfoManageSys.dataobject.enums;
 
 public enum TempTypeEnum {
     TEMP_TYPE_SESSIONID(1,"sessionId","会话ID"),
-    TEMP_TYPE_CURRENTDIR(2,"currentDir","用户当前目录");
+    TEMP_TYPE_CURRENTDIR(2,"currentDir","用户当前目录"),
+    TEMP_TYPE_CURRENTABLUM(3,"currentAblum","用户当前相册");
     private int code;
     private String key;
     private String description;

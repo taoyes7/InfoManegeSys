@@ -10,6 +10,7 @@ import com.infomanagesys.InfoManageSys.dataobject.entity.label.LabelGroup;
 import com.infomanagesys.InfoManageSys.dataobject.entity.label.LabelType;
 import com.infomanagesys.InfoManageSys.dataobject.enums.ApiKeyEnum;
 import com.infomanagesys.InfoManageSys.dataobject.enums.LabelEnum;
+import com.infomanagesys.InfoManageSys.dataobject.enums.SeverPathEnum;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LabelResponseDTO;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LabelTypeResponseDTO;
 import com.infomanagesys.InfoManageSys.service.doc.itf.INLPService;
@@ -40,7 +41,7 @@ public class NLPServiceImpl implements INLPService {
     @Override
     public ArrayList<LabelResponseDTO> GetLabelsByWorldFile(DocFile docFile,String userId) {
         ArrayList<LabelResponseDTO> labelResponseDTOArrayList = new ArrayList<LabelResponseDTO>();
-        File file = new File(docFile.getPathLocal() +"\\"+ docFile.getName()+"." + docFile.getPostfix().toLowerCase());
+        File file = new File(SeverPathEnum.FILE_PATH.getPath() +"//"+userId+"//file//"+ docFile.getName()+"." + docFile.getPostfix().toLowerCase());
         String content = "";
         String title = docFile.getName();
         try {
