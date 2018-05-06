@@ -1,5 +1,7 @@
 import React,{Component} from 'react';
+import {actions} from 'mirrorx';
 import './index.css';
+import ABLUM from './ABLUM.jpg';
 
 export default class Album extends Component{
     constructor(props){
@@ -7,9 +9,13 @@ export default class Album extends Component{
     }
     render(){
         return(
-            <div id="album">
-            <img id="album_photo" src={this.props.src}/>
-            <center><div id="title">默认相册</div></center>
+            <div id="album" onClick={()=>{
+                actions.routing.push({
+                    pathname: `/photo`
+                });
+            }}>
+            <img id="album_photo" src={ABLUM}/>
+            <center><div id="title">相册管理</div></center>
             </div>
         )
     }

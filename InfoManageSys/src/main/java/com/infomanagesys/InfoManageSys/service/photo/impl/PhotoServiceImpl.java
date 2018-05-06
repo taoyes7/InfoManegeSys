@@ -19,6 +19,7 @@ import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LabelTypeResponseD
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.ResponseDTO;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.photo.AblumDTO;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.photo.AblumDataDTOS;
+import com.infomanagesys.InfoManageSys.dataobject.responseDTO.photo.ImgApiDTO;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.photo.PhotoDTO;
 import com.infomanagesys.InfoManageSys.exception.FileExistException;
 import com.infomanagesys.InfoManageSys.exception.UserCheckException;
@@ -57,7 +58,7 @@ public class PhotoServiceImpl implements IPhotoService {
     }
 
     @Override
-    public void  uploadImg(String userId,String description ,MultipartFile img) {
+        public void  uploadImg(String userId,String description ,MultipartFile img) {
 
         double imgSize =0;
         // 获取上传文件的全名(包含后缀名)
@@ -128,7 +129,7 @@ public class PhotoServiceImpl implements IPhotoService {
 //    ruleAndFileResponseDTO.setFile(fileResponseDTO);
 //    return ruleAndFileResponseDTO;
     }
-    private AblumDTO getAblumByphoto(Photo photo,AblumDTO parentAblum,String userId){
+    private AblumDTO getAblumByphotoS(Photo photo,AblumDTO parentAblum,String userId){
         ArrayList<PhotoAlbum> photoAlbums = photoAlbumRepository.findByParentIdAndStatus(parentAblum.getPid(),FileStatusEnum.STATUS_AVAILABLE.getState());
         ArrayList<AblumDTO>  ablumDTOS = parsePhotoAlbumListToDTO(photoAlbums);
         PhotoDTO photoDTO = parsePhotoToDTO(photo);
@@ -158,18 +159,22 @@ public class PhotoServiceImpl implements IPhotoService {
             }
 
         }else {
-            _ablumDTO= parentAblum;
+            if(parentAblum.getName().equals("root")){
+                _ablumDTO = getWeiFenLeiAblum(userId);
+            }else {
+                _ablumDTO = parentAblum;
+            }
         }
 
         if(!_ablumDTO.getPid().equals(parentAblum.getPid())){
-            _ablumDTO = getAblumByphoto(photo,_ablumDTO,userId);
+            _ablumDTO = getAblumByphotoS(photo,_ablumDTO,userId);
         }
        return _ablumDTO;
     }
     @Override
     public AblumDTO getAblumByPhoto(Photo photo,String userId){
         AblumDTO ablumDTO = getCurrentAblum(userId);
-        ablumDTO = getAblumByphoto(photo,ablumDTO,userId);
+        ablumDTO = getAblumByphotoS(photo,ablumDTO,userId);
          return ablumDTO;
     }
     private LabelResponseDTO isBelongToAblum(PhotoDTO photoDTO,AblumDTO ablumDTO){
@@ -286,6 +291,173 @@ public class PhotoServiceImpl implements IPhotoService {
         ablumDataDTOS.setAblums(parsePhotoAlbumListToDTO(photoAlbums));
         return ablumDataDTOS;
     }
+    @Override
+    @Transactional
+    public ResponseDTO addLabelToAblum(String ablumId,String labelId, String labelContent){
+        PhotoAlbum photoAlbum = photoAlbumRepository.findFirstByPidAndStatus(ablumId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        try {
+            JSONArray labels = new JSONArray(photoAlbum.getLabels());
+            JSONObject label = new JSONObject();
+            label.put("pid",labelId);
+            label.put("content",labelContent);
+            labels.put(label);
+            photoAlbum.setLabels(labels.toString());
+        }catch(Exception e){
+            throw new UserCheckException("参数解析失败");
+        }
+        photoAlbumRepository.save(photoAlbum);
+        return new ResponseDTO();
+    }
+    @Override
+    @Transactional
+    public ResponseDTO removeLabelFromAblum(String ablumId,String labelId){
+        PhotoAlbum photoAlbum = photoAlbumRepository.findFirstByPidAndStatus(ablumId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        try {
+            JSONArray labels = new JSONArray(photoAlbum.getLabels());
+            for(int i=0;i<labels.length();i++){
+                JSONObject label = labels.getJSONObject(i);
+                if(label.getString("pid").equals(labelId)){
+                    labels.remove(i);
+                    break;
+                }
+            }
+            photoAlbum.setLabels(labels.toString());
+        }catch(Exception e){
+            throw new UserCheckException("参数解析失败");
+        }
+        photoAlbumRepository.save(photoAlbum);
+        return new ResponseDTO();
+    }
+    @Override
+    @Transactional
+    public ResponseDTO addLabelToPhoto(String photoId, JSONObject label){
+      Photo photo = photoRepository.findFirstByPidAndStatus(photoId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        JSONArray labels;
+      try{
+          labels = new JSONArray(photo.getLabels());
+          labels.put(label);
+
+      }catch (Exception e){
+          e.printStackTrace();
+          throw  new UserCheckException("参数解析失败");
+      }
+      photo.setLabels(labels.toString());
+      photoRepository.save(photo);
+      return new ResponseDTO();
+    }
+    @Override
+    @Transactional
+    public ResponseDTO removeLabelFromPhoto(String photoId,String labelId){
+        Photo photo = photoRepository.findFirstByPidAndStatus(photoId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        try {
+            JSONArray labels = new JSONArray(photo.getLabels());
+            for(int i=0;i<labels.length();i++){
+                JSONObject label = new JSONObject(labels.getString(i));
+                if(label.getString("pid").equals(labelId)){
+                    labels.remove(i);
+                    break;
+                }
+            }
+            photo.setLabels(labels.toString());
+        }catch(Exception e){
+            throw new UserCheckException("参数解析失败");
+        }
+        photoRepository.save(photo);
+        return new ResponseDTO();
+    }
+    private void releaseAblumPhotos(String userId,String ablumId){
+        ArrayList<Photo> photoS = photoRepository.findByGroupIdAndStatus(ablumId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        for (Photo photo:photoS){
+            photo.setGroupId(getAblumByPhoto(photo,userId).getPid());
+            photoRepository.save(photo);
+        }
+        ArrayList<PhotoAlbum> ablumS = photoAlbumRepository.findByParentIdAndStatus(ablumId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        for(PhotoAlbum photoAlbum:ablumS){
+            photoAlbum.setStatus(FileStatusEnum.STATUS_DELETED.getState());
+            photoAlbumRepository.save(photoAlbum);
+            releaseAblumPhotos(userId,photoAlbum.getPid());
+        }
+    }
+    @Override
+    @Transactional
+    public AblumDataDTOS deleteAblum(String userId,String ablumId){
+        String parentId=photoAlbumRepository.findFirstByPidAndStatus(ablumId,FileStatusEnum.STATUS_AVAILABLE.getState()).getParentId();
+        photoAlbumRepository.updateStatusByPid(FileStatusEnum.STATUS_DELETED.getState(),ablumId);
+        releaseAblumPhotos(userId,ablumId);
+        AblumDataDTOS ablumDataDTOS = new AblumDataDTOS();
+        ArrayList<PhotoAlbum> photoAlbums = photoAlbumRepository.findByParentIdAndStatus(parentId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        ablumDataDTOS.setAblums(parsePhotoAlbumListToDTO(photoAlbums));
+        return ablumDataDTOS;
+    }
+    @Override
+    @Transactional
+    public AblumDataDTOS deletePhoto(String userId,String photoId){
+        String groupId = photoRepository.findFirstByPidAndStatus(photoId,FileStatusEnum.STATUS_AVAILABLE.getState()).getGroupId();
+        photoRepository.updateStatusByPid(FileStatusEnum.STATUS_DELETED.getState(),photoId);
+        AblumDataDTOS ablumDataDTOS = new AblumDataDTOS();
+        ArrayList<Photo> photos = photoRepository.findByGroupIdAndStatus(groupId,FileStatusEnum.STATUS_AVAILABLE.getState());
+        ablumDataDTOS.setPhotos(parsePhotoListToDTO(photos));
+        return ablumDataDTOS;
+    }
+    @Override
+    public ImgApiDTO uploadAndRecImg(String userId, MultipartFile img, String typeCode){
+        double imgSize =0;
+        // 获取上传文件的全名(包含后缀名)
+        String imgFullName = img.getOriginalFilename();
+        System.out.println("imgFullName:" + imgFullName);
+        // 截取上传文件的文件名
+        String imgName = imgFullName.substring(
+                imgFullName.lastIndexOf('\\') + 1, imgFullName.indexOf('.'));
+        System.out.println("multiReq.getFile()" + imgName);
+        // 截取上传文件的后缀
+        String imgSuffix = imgFullName.substring(
+                imgFullName.indexOf('.') + 1, imgFullName.length());
+        System.out.println("uploadFileSuffix:" + imgSuffix);
+
+
+        Photo photo = Photo.photoBuilder()
+                .withPid(Pid.getPid())
+                .withName(imgName)
+                .withType(imgSuffix)
+                .withStatus(FileStatusEnum.STATUS_AVAILABLE.getState())
+                .withUser(userId)
+                .build();
+
+        FileOutputStream fos = null;
+        FileInputStream fis = null;
+        try {
+            fis = (FileInputStream) img.getInputStream();
+            fos = new FileOutputStream(new File( SeverPathEnum.FILE_PATH.getPath()+"//"+userId+"//tempFile//"+photo.getPid()+"."+photo.getType()));
+            byte[] temp = new byte[1024];
+            int i = fis.read(temp);
+            while (i != -1){
+                imgSize++;
+                fos.write(temp,0,temp.length);
+                fos.flush();
+                i = fis.read(temp);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        imgSize = imgSize/1024;
+        return  imgRecService.BaiDUImgResIMG(photo,userId,typeCode);
+    }
 
     private ArrayList<PhotoDTO> parsePhotoListToDTO(ArrayList<Photo> photos){
         ArrayList<PhotoDTO> photoDTOS = new ArrayList<PhotoDTO>();
@@ -314,6 +486,9 @@ public class PhotoServiceImpl implements IPhotoService {
 
                     labelResponseDTO.setContent(label.getString("content"));
                     labelResponseDTO.setPid(label.getString("pid"));
+                    labelResponseDTO.setScore(label.getDouble("score"));
+                    labelResponseDTO.setColor(label.getString("color"));
+                    labelResponseDTO.setLevel(label.getInt("level"));
                     try{
                         if(label.getString("discription")!=null) {
                             labelResponseDTO.setDiscription(label.getString("discription"));

@@ -26,8 +26,9 @@ mirror.hook((action, getState) => {
           actions.photo.openAblum(args).then((result)=>{
             if(result){
               actions.photo.getCurrentAblum(args);
-              actions.photo.getAblumData(args);
-              actions.photo.getUnClassfiyedAblum(args);
+              actions.photo.getUnClassfiyedAblum(args).then(()=>{
+                actions.photo.getAblumData(args);
+              });
             }
           });
         }

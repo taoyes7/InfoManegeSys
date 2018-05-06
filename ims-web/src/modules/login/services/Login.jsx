@@ -7,22 +7,22 @@ const URL = {
     "CREATE_ROOT_DIR":"/doc/create/rootdir"
     
 }
-export const register = () => {
+export const register = (args) => {
 
    return request(URL.REGISTER, {
         method: "post", 
         param: {
-            "accountid":"18010541632",
-            "passworld":"123456"
+            "userInfo":args.userInfo
         }
     });
 }
-export const login = () =>{
+export const login = (args) =>{
+    console.log(args);
     return request(URL.LOGIN, {
         method: "post", 
         param: {
-            "accountid":"18010541632",
-            "passworld":"123456"
+            "accountid":args.accountid,
+            "passworld":args.passworld
         }
     });
 }

@@ -652,14 +652,14 @@ public class DocServiceImpl implements IDocService
             rulesAndFileLIstResponseDTO.setFileResponseDTOArrayList(fileArrayList);
             rulesAndFileLIstResponseDTOArrayList.add(rulesAndFileLIstResponseDTO);
         }
-        if(fileResponseDTOArrayList.size()>0){
+
             RulesAndFileLIstResponseDTO rulesAndFileLIstResponseDTO = new RulesAndFileLIstResponseDTO();
             LabelGroupResponseDTO labelGroup = new LabelGroupResponseDTO();
             labelGroup.setName("其他");
             rulesAndFileLIstResponseDTO.setLabelGroup(labelGroup);
             rulesAndFileLIstResponseDTO.setFileResponseDTOArrayList(fileResponseDTOArrayList);
             rulesAndFileLIstResponseDTOArrayList.add(rulesAndFileLIstResponseDTO);
-        }
+
         classfiyedFileResponseDTO.setDirId(dirId);
         classfiyedFileResponseDTO.setRulesAndFileLIstResponseDTOArrayList(rulesAndFileLIstResponseDTOArrayList);
         return classfiyedFileResponseDTO;

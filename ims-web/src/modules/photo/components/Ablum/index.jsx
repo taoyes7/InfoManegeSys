@@ -10,25 +10,101 @@ class Ablum extends Component{
     constructor(props) {
         super(props);
         this.state={
+            reflash:false,
             new_img:"",
             modal_changeAblum:false,
             modal_ImgS:false,
             photoS:[],
             ablumS:[],
             isEdit:false,
-            edit_color:"black"
+            edit_color:"black",
+            modal_ablum_delete:false
         }
         
     }
+
+      
     
     
     render(){  
+
         let shif=this;
+
+        let key_ablum_label=0;
+        let key_label_type=0;
+    let key_label_label=0;
+    const menu_add_Labels = (
+        <Menu 
+    defaultActive="1"
+    defaultOpened={['5']}
+    style={{width:240}}
+  >
+
+    {
+        shif.props.labelGroups.map(function(labelGroup){
+            key_label_type++;
+            key_label_label=0;
+            return (
+            <Menu.SubMenu index={key_label_type} key={key_label_type} title={<span><Icon type="star-on" />{labelGroup.labelType.name}<span></span></span>}>
+            {
+                labelGroup.labels.map(function(label){
+                    key_label_label++;
+                return(
+                    <Menu.Item  index={key_label_type+"-"+key_label_label} key={key_label_type+"-"+key_label_label} title={<span><Icon type="menu" /><span>
+                    {label.content}
+                    </span></span>}>
+                                <div 
+                                onClick={ ()=>
+                                    {
+                                        let isHave=false;
+                                        shif.props.ablum.labels.map(function(_label){
+                                            if(label.content==_label.content){
+                                                isHave=true;
+                                            }
+                                        });
+                                        if(!(isHave)){
+                                        let _label={
+                                                    "pid":label.pid,
+                                                    "content":label.content,
+                                                    "description":label.description
+                                                };
+                                        let args={
+                                            "sessionId":shif.props.sessionId,
+                                            "label":_label,
+                                            "ablumId":shif.props.ablum.pid
+                                        }
+                                        actions.photo.addNewLabelToAblum(args).then(
+                                            (result)=>{
+                                                shif.props.ablum.labels.push(_label);
+                                                shif.setState({
+                                                    reflash:!shif.state.reflash
+                                                })
+                                            }
+                                        );
+                                        }else{
+                                            alert("该标签已添加");
+                                        }
+            
+                                    } 
+                                }
+                                >{label.content}</div>
+                </Menu.Item> );
+                })
+            }
+            </Menu.SubMenu>
+            )
+        })
+    }
+
+  </Menu>
+      );
+
         let key_ablum=0;
         let  key_photo=0;
         
             return(
                 <div className="photo-ablum-size">
+                {console.log("ablum")}
                     <img src={shif.props.ablum.iconPath} className="photo-ablum-highlight-size" alt="图片加载失败" 
                     onClick={
                         ()=>{
@@ -76,6 +152,56 @@ class Ablum extends Component{
                         })
                     }}
                     >编辑</div><Icon type="edit"  style={{color:shif.state.edit_color}} /></div>
+                    {
+                        shif.props.ablum.labels.map(function(label){
+                            key_ablum_label++;
+                            return(
+                                <Tag key={key_ablum_label} color="#52575c"
+                                onClick={
+                                    ()=>{
+                                        if(shif.state.isEdit){
+                                            let args={
+                                                "sessionId":shif.props.sessionId,
+                                                "labelId":label.pid,
+                                                "ablumId":shif.props.ablum.pid
+                                            }
+                                            actions.photo.removeLabelFromAblum(args).then(
+                                                (result)=>{
+                                                    if(result){
+                                                        let count =0;
+                                                        let _count =0;
+                                                        shif.props.ablum.labels.map(function(_label){
+                                                            if(label.pid==_label.pid){
+                                                                _count=count;
+                                                            }
+                                                            count++;
+                                                        });
+                                                        shif.props.ablum.labels.splice(_count,1);
+                                                        shif.setState({
+                                                            reflash:!shif.state.reflash
+                                                        })
+                                                    }
+                                                }
+                                            );
+                                        }
+                                       
+                                    }
+                                }
+                                >{label.content}</Tag>
+                            )
+                        })
+                    }
+                    {
+                        shif.state.isEdit?
+                        <div>
+                            <Dropdown menu={menu_add_Labels}>
+                            <a className="ant-dropdown-link" href="javascript:;">
+                            <Button>选择标签</Button> <Icon type="arrow-down" />
+                            </a>
+                            </Dropdown>
+                        </div>
+                        :""
+                    }
                         <Button
                         onClick={()=>{
                             let args={
@@ -95,6 +221,13 @@ class Ablum extends Component{
                             )
                         }}
                         >修改封面</Button>
+                        <Button
+                        onClick={()=>{
+                            shif.setState({
+                                modal_ablum_delete:true
+                            })
+                        }}
+                        >删除相册</Button>
                         <div></div>
                     </Modal.Body>
 
@@ -156,9 +289,6 @@ class Ablum extends Component{
                             })
                         }
                         {
-                            console.log(shif.props)
-                        }
-                        {
                             shif.state.photoS.map(function(photo){
                                 key_photo++;
                                 return(
@@ -196,6 +326,53 @@ class Ablum extends Component{
                         })
                     }}>
                             取消
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+                <Modal
+                    show={shif.state.modal_ablum_delete}
+                    onHide={()=>{
+                        let modal_ablum_delete = false;
+                        shif.setState({
+                            modal_ImgS:modal_ablum_delete
+                        })
+                    }}
+                    style={{width: 450}}
+                >
+                    <Modal.Header className="text-center">
+                        <Modal.Title>确认删除</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                    </Modal.Body>
+
+                    <Modal.Footer className="text-center">
+                        <Button  onClick={()=>{
+                        let modal_ablum_delete = false;
+                        shif.setState({
+                            modal_ablum_delete:modal_ablum_delete
+                        })
+                    }}>
+                            取消
+                        </Button>
+                        <Button colors="primary" onClick={()=>{
+                        let modal_ablum_delete = false;
+                        let args={
+                            "sessionId":shif.props.sessionId,
+                            "ablumId":shif.props.ablum.pid
+                        }
+                        actions.photo.deleteAblum(args).then(
+                            (result)=>{
+                                if(result){
+                                    shif.setState({
+                                        modal_ablum_delete:modal_ablum_delete,
+                                        modal_changeAblum:false
+                                    })
+                                }
+                            }
+                        )
+                        
+                    }}>
+                            删除
                         </Button>
                     </Modal.Footer>
                 </Modal>

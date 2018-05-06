@@ -52,6 +52,7 @@ export default {
             })
             rulesAndFiles[_count].fileResponseDTOArrayList.push(data.file.file);
             console.log(rulesAndFiles);
+            console.log(_count);
             return {
                 ...state,
                 ...{rulesAndFiles}
@@ -105,8 +106,8 @@ export default {
                 let {rulesAndFileLIstResponseDTOArrayList:rulesAndFiles}=dirFileList;
                 actions.document.save({rulesAndFiles});
                 actions.document.getCurrentDir(sessionId);
-                actions.docMenu.getAllLabelType({"sessionId":sessionId});
-                actions.docMenu.getAllLabelsByGroup({"sessionId":sessionId});
+                // actions.docMenu.getAllLabelType({"sessionId":sessionId});
+                // actions.docMenu.getAllLabelsByGroup({"sessionId":sessionId});
             }else{
                 console.log(data.message);
             }

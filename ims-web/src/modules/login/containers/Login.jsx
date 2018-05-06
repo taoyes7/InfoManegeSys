@@ -20,4 +20,8 @@ mirror.hook((action, getState) => {
 });
 
 
-export default connect((state) => state.login)(Login);
+export default connect((state) => {
+  return {
+    state:state.login
+  }
+  })(Login);

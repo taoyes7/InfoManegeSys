@@ -13,8 +13,6 @@ export default {
     },
     reducers : {
         save(state, data) {
-            console.log(state);
-            console.log(data);
             return {
                 ...state,
                 ...data
@@ -82,10 +80,48 @@ export default {
             if(success){
                 let {ablums:ablumS} = data;
                 actions.photo.save({ablumS});
+                return success;
+            }
+        },
+        async addNewLabelToAblum(args){
+            let {data:{success}} = await api.addNewLabelToAblum(args);
+            if(success){
+                return success;
+            }
+        },
+        async removeLabelFromAblum(args){
+            let {data:{success}} = await api.removeLabelFromAblum(args);
+            if(success){
+                return success;
+            }
+        },
+        async addNewLabelToPhoto(args){
+            let {data:{success}} = await api.addNewLabelToPhoto(args);
+            if(success){
+                return success;
+            }
+        },
+        async removeLabelFromPhoto(args){
+            let {data:{success}} = await api.removeLabelFromPhoto   (args);
+            if(success){
+                return success;
+            }
+        },
+        async deleteAblum(args){
+            let {data,data:{success}} = await api.deleteAblum(args);
+            if(success){
+                let {ablums:ablumS} = data;
                 actions.photo.save({ablumS});
                 return success;
             }
+        },
+        async deletePhoto(args){
+            let {data,data:{success}} = await api.deletePhoto(args);
+            if(success){
+                let {photos:photoS} = data;
+                actions.photo.save({photoS});
+                return success;
+            }
         }
-
     }
 }

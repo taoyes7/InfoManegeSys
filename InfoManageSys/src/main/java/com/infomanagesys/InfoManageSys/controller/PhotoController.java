@@ -4,6 +4,7 @@ import com.infomanagesys.InfoManageSys.dataobject.responseDTO.ResponseDTO;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.RuleAndFileResponseDTO;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.photo.AblumDTO;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.photo.AblumDataDTOS;
+import com.infomanagesys.InfoManageSys.dataobject.responseDTO.photo.ImgApiDTO;
 import com.infomanagesys.InfoManageSys.exception.UserCheckException;
 import com.infomanagesys.InfoManageSys.service.photo.impl.PhotoServiceImpl;
 import com.infomanagesys.InfoManageSys.service.user.impl.UserServiceImpl;
@@ -111,9 +112,67 @@ public class PhotoController {
         }
     }
     @RequestMapping(value = "/add/label/ablum", method = RequestMethod.POST)
-    public AblumDataDTOS addLabelToAblum(@RequestParam("sessionId") String sessionId,@RequestParam("ablumId") String ablumId,@RequestParam("photoId") String photoId){
+    public ResponseDTO addLabelToAblum(@RequestParam("sessionId") String sessionId,@RequestParam("ablumId") String ablumId,@RequestParam("labelId") String labelId,@RequestParam("labelContent") String labelContent){
         if(userService.userCheck(sessionId)){
-            return photoService.addLabelToAblum(ablumId,photoId);
+            return photoService.addLabelToAblum(ablumId,labelId,labelContent);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value = "/remove/ablum/lable", method = RequestMethod.POST)
+    public ResponseDTO removeLabelFromAblum(@RequestParam("sessionId") String sessionId,@RequestParam("ablumId") String ablumId,@RequestParam("labelId") String labelId){
+        if(userService.userCheck(sessionId)){
+            return photoService.removeLabelFromAblum(ablumId,labelId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value = "/add/label/photo", method = RequestMethod.POST)
+    public ResponseDTO addLabelToPhoto(@RequestParam("sessionId") String sessionId,@RequestParam("photoId") String photoId,@RequestParam("label") String label){
+        if(userService.userCheck(sessionId)){
+            JSONObject _label;
+            try {
+                _label = new JSONObject(label);
+            }catch (Exception e){
+                e.printStackTrace();
+                throw new UserCheckException("参数解析失败");
+            }
+            return photoService.addLabelToPhoto(photoId,_label);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value = "/remove/photo/label", method = RequestMethod.POST)
+    public ResponseDTO removeLabelFromPhoto(@RequestParam("sessionId") String sessionId,@RequestParam("photoId") String photoId,@RequestParam("labelId") String labelId){
+        if(userService.userCheck(sessionId)){
+            return photoService.removeLabelFromPhoto(photoId,labelId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value = "/delete/ablum", method = RequestMethod.POST)
+    public AblumDataDTOS deleteAblum(@RequestParam("sessionId") String sessionId,@RequestParam("ablumId") String ablumId){
+        if(userService.userCheck(sessionId)){
+            return photoService.deleteAblum(userService.getUserId(sessionId),ablumId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value = "/delete/photo", method = RequestMethod.POST)
+    public AblumDataDTOS deletePhoto(@RequestParam("sessionId") String sessionId,@RequestParam("photoId") String photoId){
+        if(userService.userCheck(sessionId)){
+            return photoService.deletePhoto(userService.getUserId(sessionId),photoId);
+        }else {
+            throw new UserCheckException("用户校验失败");
+        }
+    }
+    @RequestMapping(value = "/upload/img/api", method = RequestMethod.POST)
+    public ImgApiDTO uploadAndRecImg(@RequestParam("sessionId") String sessionId, @RequestParam("apiTypeCode") String apiTypeCode, HttpServletRequest req,
+                                     MultipartHttpServletRequest multiReq) {
+        if(userService.userCheck(sessionId)){
+            MultipartFile img = multiReq.getFile("img");
+            return photoService.uploadAndRecImg(userService.getUserId(sessionId),img,apiTypeCode);
+
         }else {
             throw new UserCheckException("用户校验失败");
         }

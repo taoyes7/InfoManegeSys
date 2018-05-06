@@ -12,6 +12,7 @@ import com.infomanagesys.InfoManageSys.dataobject.enums.LabelEnum;
 import com.infomanagesys.InfoManageSys.dataobject.enums.SeverPathEnum;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LabelResponseDTO;
 import com.infomanagesys.InfoManageSys.dataobject.responseDTO.LabelTypeResponseDTO;
+import com.infomanagesys.InfoManageSys.dataobject.responseDTO.photo.*;
 import com.infomanagesys.InfoManageSys.exception.UserCheckException;
 import com.infomanagesys.InfoManageSys.service.photo.itf.IImgRecService;
 import com.infomanagesys.InfoManageSys.util.Pid;
@@ -91,7 +92,7 @@ public class ImgRecServiceImpl implements IImgRecService {
         client.setSocketTimeoutInMillis(60000);
         // 调用接口
         String srcPath = SeverPathEnum.FILE_PATH.getPath()+"/"+userId+"/photo/"+photo.getPid()+"."+photo.getType();
-        String desPath = SeverPathEnum.FILE_PATH.getPath() + "/" + userId + "/tempFile/" + photo.getPid() + "." + photo.getType();
+        String desPath = SeverPathEnum.FILE_PATH.getPath() + "/" + userId + "/minPhoto/" + photo.getPid() + "." + photo.getType();
 
         try {
 //                Thumbnails.of(srcPath).scale(2.0/imgSize - 0.001).toFile(desPath);
@@ -122,6 +123,7 @@ public class ImgRecServiceImpl implements IImgRecService {
                             .withUser(userId)
                             .withDescription(label.getString("root"))
                             .withStatus(FileStatusEnum.STATUS_AVAILABLE.getState()).build();
+
                     _label = labelRepository.save(_label);
                 }
                 LabelTypeResponseDTO labelTypeResponseDTO =new LabelTypeResponseDTO();
@@ -156,6 +158,97 @@ public class ImgRecServiceImpl implements IImgRecService {
             return 4;
         }
     }
+    public ImgApiDTO BaiDUImgResIMG(Photo photo, String userId, String typeCode){
+        ImgApiDTO imgApiDTO = new ImgApiDTO();
+        AipImageClassify client = new AipImageClassify(ApiKeyEnum.BAIDUI_NLP_ENUM.getAppid()
+                , ApiKeyEnum.BAIDUI_NLP_ENUM.getApikey()
+                , ApiKeyEnum.BAIDUI_NLP_ENUM.getSecretKey());
+        client.setConnectionTimeoutInMillis(2000);
+        client.setSocketTimeoutInMillis(60000);
+        // 调用接口
+        String path = SeverPathEnum.FILE_PATH.getPath()+"/"+userId+"/tempFile/"+photo.getPid()+"."+photo.getType();
+//        String desPath = SeverPathEnum.FILE_PATH.getPath() + "/" + userId + "/minPhoto/" + photo.getPid() + "." + photo.getType();
 
-
+        try {
+//                Thumbnails.of(srcPath).scale(2.0/imgSize - 0.001).toFile(desPath);
+            Thumbnails.of(path).size(200,300).toFile(path);
+//            srcPath =desPath;
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new UserCheckException("图片压缩失败");
+        }
+        JSONObject res=null;
+        try {
+            switch (typeCode) {
+                case "0":
+                    res = client.plantDetect(path, new HashMap<String, String>());
+                    JSONArray labels = res.getJSONArray("result");
+                    ArrayList<PlantDTO> plantDTOS = new ArrayList<PlantDTO>();
+                    for(int i=0;i<labels.length();i++){
+                        JSONObject label = labels.getJSONObject(i);
+                        PlantDTO plantDTO = new PlantDTO();
+                        plantDTO.setName(label.getString("name"));
+                        plantDTO.setScore(label.getDouble("score"));
+                        plantDTOS.add(plantDTO);
+                    }
+                    imgApiDTO.setPlantS(plantDTOS);
+                    imgApiDTO.setTypeCode(typeCode);
+                    break;
+                case "1":
+                    res = client.animalDetect(path, new HashMap<String, String>());
+                    JSONArray labels_1 = res.getJSONArray("result");
+                    ArrayList<AnimalDTO> animalDTOS = new ArrayList<AnimalDTO>();
+                    for(int i=0;i<labels_1.length();i++){
+                        JSONObject label = labels_1.getJSONObject(i);
+                        AnimalDTO animalDTO = new AnimalDTO();
+                        animalDTO.setName(label.getString("name"));
+                        animalDTO.setScore(label.getDouble("score"));
+                        animalDTOS.add(animalDTO);
+                    }
+                    imgApiDTO.setAnimalS(animalDTOS);
+                    imgApiDTO.setTypeCode(typeCode);
+                    break;
+                case "2":
+                    res = client.dishDetect(path, new HashMap<String, String>());
+                    JSONArray labels_2 = res.getJSONArray("result");
+                    ArrayList<FoodDTO> foodDTOS = new ArrayList<FoodDTO>();
+                    for(int i=0;i<labels_2.length();i++){
+                        JSONObject label = labels_2.getJSONObject(i);
+                        FoodDTO foodDTO = new FoodDTO();
+                        foodDTO.setName(label.getString("name"));
+                        foodDTO.setHas_calorie(label.getBoolean("has_calorie"));
+                        foodDTO.setCalorie(label.getDouble("calorie"));
+                        foodDTO.setProbability(label.getDouble("probability"));
+                        foodDTOS.add(foodDTO);
+                    }
+                    imgApiDTO.setFoodS(foodDTOS);
+                    imgApiDTO.setTypeCode(typeCode);
+                    break;
+                case "3":
+                    res = client.carDetect(path, new HashMap<String, String>());
+                    JSONArray labels_3 = res.getJSONArray("result");
+                    ArrayList<CarDTO> carDTOS = new ArrayList<CarDTO>();
+                    for(int i=0;i<labels_3.length();i++){
+                        JSONObject label = labels_3.getJSONObject(i);
+                        CarDTO carDTO = new CarDTO();
+                        carDTO.setName(label.getString("name"));
+                        carDTO.setScore(label.getDouble("score"));
+                        carDTO.setYear(label.getString("year"));
+                        carDTOS.add(carDTO);
+                    }
+                    imgApiDTO.setCarS(carDTOS);
+                    imgApiDTO.setTypeCode(typeCode);
+                    break;
+                default:
+                    break;
+            }
+        }catch (Exception e){
+            System.out.println(res);
+            e.printStackTrace();
+            throw  new UserCheckException("图像识别失败");
+        }
+        System.out.println(res);
+        imgApiDTO.setPhoto_src(SeverPathEnum.FILE_SEVER_PATH.getPath()+"/userData/"+userId+"/tempFile/"+photo.getPid()+"."+photo.getType());
+        return imgApiDTO;
+    }
 }

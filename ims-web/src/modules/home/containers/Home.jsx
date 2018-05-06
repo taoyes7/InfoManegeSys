@@ -16,6 +16,26 @@ mirror.hook((action, getState) => {
   const { routing: { location } } = getState();
   if (action.type === "@@router/LOCATION_CHANGE" && location.pathname === '/home') {
     // actions.user.load();
+    let args={
+      "sessionId":getState().login.sessionId
+    }
+    actions.home.loadUserInfo(args);
+    actions.docMenu.getAllLabelType(args);
+    actions.docMenu.getAllLabelsByGroup(args);
+    actions.home.getAllUserLinkS(args);
+    actions.home.getUserPlanS(args);
+    actions.home.getUserDiaryS(args).then((result)=>{
+      if(result){
+        let _args={
+          "eventKey":getState().home.userDiary_curPage,
+          "userDiaryS":getState().home.userDiaryS,
+          "userDiary_pages":getState().home.userDiary_pages,
+          "userDiary_items":getState().home.userDiary_items
+        }
+        actions.home.changDiaryPage(_args);
+      }
+    });
+
   }
 });
 
